@@ -12,6 +12,8 @@
 
 #include "AL/al.h"
 
+#include "Labyrinthe.h"
+
 
 class Scene
 {
@@ -20,6 +22,8 @@ private:
     // objets de la scène
     Cube* m_Cube;
     Ground* m_Ground;
+    Labyrinthe* lab;
+    struct Perso* perso;
 
     // lampes
     Light* m_Light;

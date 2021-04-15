@@ -11,22 +11,29 @@
 #include <utils.h>
 
 #include "Scene.h"
+#include "Labyrinthe.h"
+#include "Case.h"
+#include "Perso.h"
 
+using namespace std;
 
 /** constructeur */
 Scene::Scene()
 {
     // créer les objets à dessiner
     m_Cube = new Cube("data/white_noise.wav");
-    m_Cube->setPosition(vec3::fromValues(0.5, 0.0, 0.0));
+    //m_Cube->setPosition(vec3::fromValues(0.5, 0.0, 0.0));
     m_Ground = new Ground();
 
     // caractéristiques de la lampe
     m_Light = new Light();
-    m_Light->setColor(500.0, 500.0, 500.0);
+    /*m_Light->setColor(500.0, 500.0, 500.0);
     m_Light->setPosition(0.0,  16.0,  13.0, 1.0);
     m_Light->setDirection(0.0, -1.0, -1.0, 0.0);
-    m_Light->setAngles(30.0, 40.0);
+    m_Light->setAngles(30.0, 40.0);*/
+
+    lab = new Labyrinthe(2);
+    perso = new Perso();
 
     // couleur du fond : gris foncé
     glClearColor(0.4, 0.4, 0.4, 0.0);
@@ -42,13 +49,12 @@ Scene::Scene()
     m_MatTMP = mat4::create();
 
     // gestion vue et souris
-    m_Azimut    = 0.0;
+    m_Azimut = 0.0;
     m_Elevation = 0.0;
-    m_Distance  = 0.0;
-    m_Center    = vec3::create();
-    m_Clicked   = false;
+    m_Distance = 0.0;
+    m_Center = vec3::create();
+    m_Clicked = false;
 }
-
 
 /**
  * appelée quand la taille de la vue OpenGL change
@@ -64,7 +70,6 @@ void Scene::onSurfaceChanged(int width, int height)
     mat4::perspective(m_MatP, Utils::radians(25.0), (float)width / height, 0.1, 100.0);
 }
 
-
 /**
  * appelée quand on enfonce un bouton de la souris
  * @param btn : GLFW_MOUSE_BUTTON_LEFT pour le bouton gauche
@@ -73,12 +78,12 @@ void Scene::onSurfaceChanged(int width, int height)
  */
 void Scene::onMouseDown(int btn, double x, double y)
 {
-    if (btn != GLFW_MOUSE_BUTTON_LEFT) return;
+    if (btn != GLFW_MOUSE_BUTTON_LEFT)
+        return;
     m_Clicked = true;
     m_MousePrecX = x;
     m_MousePrecY = y;
 }
-
 
 /**
  * appelée quand on relache un bouton de la souris
@@ -91,7 +96,6 @@ void Scene::onMouseUp(int btn, double x, double y)
     m_Clicked = false;
 }
 
-
 /**
  * appelée quand on bouge la souris
  * @param x coordonnée horizontale relative à la fenêtre
@@ -99,15 +103,17 @@ void Scene::onMouseUp(int btn, double x, double y)
  */
 void Scene::onMouseMove(double x, double y)
 {
-    if (! m_Clicked) return;
-    m_Azimut  += (x - m_MousePrecX) * 0.1;
+    if (!m_Clicked)
+        return;
+    m_Azimut += (x - m_MousePrecX) * 0.1;
     m_Elevation += (y - m_MousePrecY) * 0.1;
-    if (m_Elevation >  90.0) m_Elevation =  90.0;
-    if (m_Elevation < -90.0) m_Elevation = -90.0;
+    if (m_Elevation > 90.0)
+        m_Elevation = 90.0;
+    if (m_Elevation < -90.0)
+        m_Elevation = -90.0;
     m_MousePrecX = x;
     m_MousePrecY = y;
 }
-
 
 /**
  * appelée quand on appuie sur une touche du clavier
@@ -122,53 +128,56 @@ void Scene::onKeyDown(int code)
 
     // vecteur indiquant le décalage à appliquer au pivot de la rotation
     vec3 offset = vec3::create();
-    switch (code) {
-        case GLFW_KEY_W: // avant
-            m_Distance *= exp(-0.01);
-            break;
-        case GLFW_KEY_S: // arrière
-            m_Distance *= exp(+0.01);
-            break;
-        case GLFW_KEY_A: // droite
-            vec3::transformMat4(offset, vec3::fromValues(+0.1, 0, 0), m_MatTMP);
-            break;
-        case GLFW_KEY_D: // gauche
-            vec3::transformMat4(offset, vec3::fromValues(-0.1, 0, 0), m_MatTMP);
-            break;
-        case GLFW_KEY_Q: // haut
-            vec3::transformMat4(offset, vec3::fromValues(0, -0.1, 0), m_MatTMP);
-            break;
-        case GLFW_KEY_Z: // bas
-            vec3::transformMat4(offset, vec3::fromValues(0, +0.1, 0), m_MatTMP);
-            break;
-        case GLFW_KEY_RIGHT:
-            std::cout << "Droite" << std::endl;
-            actionDroite();
-            break;
-        case GLFW_KEY_LEFT:
-            std::cout << "Gauche" << std::endl;
-            actionGauche();
-            break;
-        case GLFW_KEY_UP:
-            std::cout << "Face" << std::endl;
-            actionFace();
-            break;
-        case GLFW_KEY_DOWN:
-            std::cout << "Arrière" << std::endl;
-            actionArriere();
-            break;
-        default:
-            return;
+    switch (code)
+    {
+    case GLFW_KEY_W: // avant
+        m_Distance *= exp(-0.01);
+        break;
+    case GLFW_KEY_S: // arrière
+        m_Distance *= exp(+0.01);
+        break;
+    case GLFW_KEY_A: // droite
+        vec3::transformMat4(offset, vec3::fromValues(+0.1, 0, 0), m_MatTMP);
+        break;
+    case GLFW_KEY_D: // gauche
+        vec3::transformMat4(offset, vec3::fromValues(-0.1, 0, 0), m_MatTMP);
+        break;
+    case GLFW_KEY_Q: // haut
+        vec3::transformMat4(offset, vec3::fromValues(0, -0.1, 0), m_MatTMP);
+        break;
+    case GLFW_KEY_Z: // bas
+        vec3::transformMat4(offset, vec3::fromValues(0, +0.1, 0), m_MatTMP);
+        break;
+    case GLFW_KEY_RIGHT:
+        std::cout << "Droite" << std::endl;
+        actionDroite();
+        break;
+    case GLFW_KEY_LEFT:
+        std::cout << "Gauche" << std::endl;
+        actionGauche();
+        break;
+    case GLFW_KEY_UP:
+        std::cout << "Face" << std::endl;
+        actionFace();
+        break;
+    case GLFW_KEY_DOWN:
+        std::cout << "Arrière" << std::endl;
+        actionArriere();
+        break;
+    default:
+        return;
     }
 
     // appliquer le décalage au centre de la rotation
     vec3::add(m_Center, m_Center, offset);
 }
 
-ALuint Scene::initSound(std::string soundpathname, int right, int up, int back) {
+ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
+{
     // ouverture du flux audio à placer dans le buffer
     ALuint buffer = alutCreateBufferFromFile(soundpathname.c_str());
-    if (buffer == AL_NONE) {
+    if (buffer == AL_NONE)
+    {
         std::cerr << "unable to open file " << soundpathname << std::endl;
         alGetError();
         throw std::runtime_error("file not found or not readable");
@@ -194,40 +203,67 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back) 
 /**
  * Appelé quand appuie sur touche droite
  */
-void Scene::actionDroite(){
-    std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound(soundpathname, 15, 0, 0);
-
-    alSourcePlay(source);
+void Scene::actionDroite()
+{
+    Case c = lab->getPosition(perso->pos_x, perso->pos_y);
+    cout << c.East << endl;
+    if (c.East)
+    {
+        std::string soundpathname = "data/Duck-quacking-sound.wav";
+        ALuint source = initSound(soundpathname, 15, 0, 0);
+        alSourcePlay(source);
+        
+        perso->pos_x++;
+    }
 }
 /**
 * Appelé quand appuie sur touche gauche
 */
-void Scene::actionGauche(){
-    std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound(soundpathname, -15, 0, 0);
+void Scene::actionGauche()
+{
+    Case c = lab->getPosition(perso->pos_x, perso->pos_y);
+    cout << c.West << endl;
+    if (c.West)
+    {
+        std::string soundpathname = "data/Duck-quacking-sound.wav";
+        ALuint source = initSound(soundpathname, -15, 0, 0);
 
-    alSourcePlay(source);
+        alSourcePlay(source);
+        perso->pos_x--;
+    }
 }
 /**
 * Appelé quand appuie sur touche up
 */
-void Scene::actionFace(){
-    std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound(soundpathname, 0, 0, -15);
+void Scene::actionFace()
+{
+    Case c = lab->getPosition(perso->pos_x, perso->pos_y);
+    cout << c.North << endl;
+    if (c.North)
+    {
+        std::string soundpathname = "data/Duck-quacking-sound.wav";
+        ALuint source = initSound(soundpathname, 0, 0, -15);
 
-    alSourcePlay(source);
+        alSourcePlay(source);
+        perso->pos_y--;
+    }
 }
 /**
 * Appelé quand appuie sur touche down
 */
-void Scene::actionArriere(){
-    std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound(soundpathname, 0, 0, 15);
+void Scene::actionArriere()
+{
+    Case c = lab->getPosition(perso->pos_x, perso->pos_y);
+    cout << c.South << endl;
+    if (c.South)
+    {
+        std::string soundpathname = "data/Duck-quacking-sound.wav";
+        ALuint source = initSound(soundpathname, 0, 0, 15);
 
-    alSourcePlay(source);
+        alSourcePlay(source);
+        perso->pos_y++;
+    }
 }
-
 
 /**
  * Dessine l'image courante
@@ -249,7 +285,6 @@ void Scene::onDrawFrame()
     // centre des rotations
     mat4::translate(m_MatV, m_MatV, m_Center);
 
-
     /** gestion des lampes **/
 
     // calculer la position et la direction de la lampe par rapport à la scène
@@ -257,7 +292,6 @@ void Scene::onDrawFrame()
 
     // fournir position et direction en coordonnées caméra aux objets éclairés
     m_Ground->setLight(m_Light);
-
 
     /** dessin de l'image **/
 
@@ -272,13 +306,12 @@ void Scene::onDrawFrame()
     // dessiner le canard en mouvement
     mat4::rotateY(m_MatV, m_MatV, -Utils::Time * 0.8);
     mat4::translate(m_MatV, m_MatV, vec3::fromValues(1.0, 0.0, 0.0));
-
 }
-
 
 /** supprime tous les objets de cette scène */
 Scene::~Scene()
 {
     delete m_Cube;
     delete m_Ground;
+    delete lab;
 }
