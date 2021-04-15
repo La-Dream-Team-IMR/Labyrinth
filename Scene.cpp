@@ -18,7 +18,7 @@ Scene::Scene()
 {
     // créer les objets à dessiner
     m_Cube = new Cube("data/white_noise.wav");
-    m_Cube->setPosition(vec3::fromValues(0.0, 0.5, -10.0));
+    m_Cube->setPosition(vec3::fromValues(0.5, 0.0, 0.0));
     m_Ground = new Ground();
 
     // caractéristiques de la lampe
@@ -165,7 +165,7 @@ void Scene::onKeyDown(int code)
     vec3::add(m_Center, m_Center, offset);
 }
 
-ALuint Scene::initSound(std::string soundpathname, int x, int y, int z) {
+ALuint Scene::initSound(std::string soundpathname, int right, int up, int back) {
     // ouverture du flux audio à placer dans le buffer
     ALuint buffer = alutCreateBufferFromFile(soundpathname.c_str());
     if (buffer == AL_NONE) {
@@ -179,7 +179,7 @@ ALuint Scene::initSound(std::string soundpathname, int x, int y, int z) {
     alSourcei(source, AL_BUFFER, buffer);
 
     // propriétés de la source à l'origine
-    alSource3f(source, AL_POSITION, 0, 15, 0); // on positionne la source à (0,0,0) par défaut
+    alSource3f(source, AL_POSITION, right, up, back); // on positionne la source à (0,0,0) par défaut
     alSource3f(source, AL_VELOCITY, 0, 0, 0);
     alSourcei(source, AL_LOOPING, AL_FALSE);
     // dans un cone d'angle [-inner/2,inner/2] il n'y a pas d'attenuation
@@ -196,7 +196,7 @@ ALuint Scene::initSound(std::string soundpathname, int x, int y, int z) {
  */
 void Scene::actionDroite(){
     std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound("data/Duck-quacking-sound.wav", 5, 0, 0);
+    ALuint source = initSound(soundpathname, 15, 0, 0);
 
     alSourcePlay(source);
 }
@@ -205,7 +205,7 @@ void Scene::actionDroite(){
 */
 void Scene::actionGauche(){
     std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound("data/Duck-quacking-sound.wav", -5, 0, 0);
+    ALuint source = initSound(soundpathname, -15, 0, 0);
 
     alSourcePlay(source);
 }
@@ -214,7 +214,7 @@ void Scene::actionGauche(){
 */
 void Scene::actionFace(){
     std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound("data/Duck-quacking-sound.wav", 0, 0, 0);
+    ALuint source = initSound(soundpathname, 0, 0, -15);
 
     alSourcePlay(source);
 }
@@ -223,7 +223,7 @@ void Scene::actionFace(){
 */
 void Scene::actionArriere(){
     std::string soundpathname = "data/Duck-quacking-sound.wav";
-    ALuint source = initSound("data/Duck-quacking-sound.wav", 0, 0, 0);
+    ALuint source = initSound(soundpathname, 0, 0, 15);
 
     alSourcePlay(source);
 }

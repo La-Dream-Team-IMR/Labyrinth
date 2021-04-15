@@ -68,7 +68,7 @@ private:
      * @param y : position y
      * @param z : position z
      */
-    ALuint initSound(std::string soundpathname, int x, int y, int z);
+    ALuint initSound(std::string soundpathname, int right, int up, int back);
 
 
 public:
