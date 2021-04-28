@@ -11,7 +11,7 @@ struct Case
 
     Case() : North(false), South(false), East(false), West(false) {}
 
-    Case(unsigned short bitmap)
+    explicit Case(unsigned short bitmap)
     {
         North = bitmap & 1;
         South = bitmap & (1 << 1);
@@ -19,12 +19,12 @@ struct Case
         West = bitmap & (1 << 3);
     }
 
-    bool isFalse()
+    bool isFalse() const
     {
         return !North && !South && !East && !West;
     }
 
-    bool operator !()
+    bool operator !() const
     {
         return isFalse();
     }

@@ -17,9 +17,15 @@ public:
 
     const struct Case& getPosition(unsigned short x, unsigned short y);
 
+    const unsigned short& getSize() const { return _size; }
+
 private:
     unsigned short _size;
     std::vector<struct Case> _lab;
+
+    void generate();
+
+    void setPosition(const struct Case &c, unsigned int x, unsigned int y);
 };
 
 
