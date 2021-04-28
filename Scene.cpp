@@ -185,28 +185,30 @@ void Scene::onKeyDown(int code)
 void Scene::action()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    std::string soundpathname = "data/Duck-quacking-sound.wav";
+    cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl;
+    string soundpathname = "data/Duck-quacking-sound.wav";
+    //string soundpathname = "data/chouette2.wav";
     ALsizei nbSource = 0;
     ALuint sources[4];
     if (c.West)
     {
+        sources[nbSource] = initSound(soundpathname, -15, 0, 0);
         nbSource++;
-        sources[0] = initSound(soundpathname, -15, 0, 0);
     }
     if (c.East)
     {
+        sources[nbSource] = initSound(soundpathname, 15, 0, 0);
         nbSource++;
-        sources[1] = initSound(soundpathname, 15, 0, 0);
     }
     if (c.North)
     {
+        sources[nbSource] = initSound(soundpathname, 0, 0, -15);
         nbSource++;
-        sources[2] = initSound(soundpathname, 0, 0, -15);
     }
     if (c.South)
     {
+        sources[nbSource] = initSound(soundpathname, 0, 0, 15);
         nbSource++;
-        sources[3] = initSound(soundpathname, 0, 0, 15);
     }
     alSourcePlayv(nbSource, sources);
 }
@@ -215,10 +217,12 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
 {
     // ouverture du flux audio à placer dans le buffer
     ALuint buffer = alutCreateBufferFromFile(soundpathname.c_str());
+    // ALuint buffer = alutCreateBufferHelloWorld();
     if (buffer == AL_NONE)
     {
-        std::cerr << "unable to open file " << soundpathname << std::endl;
         alGetError();
+        string truc = alutGetErrorString(alutGetError());
+        std::cerr << "unable to open file " << soundpathname << truc << std::endl;
         throw std::runtime_error("file not found or not readable");
     }
     ALuint source;
@@ -248,10 +252,6 @@ void Scene::actionDroite()
     cout << c.East << endl;
     if (c.East)
     {
-        std::string soundpathname = "data/Duck-quacking-sound.wav";
-        ALuint source = initSound(soundpathname, 15, 0, 0);
-        alSourcePlay(source);
-
         perso->pos_x++;
     }
 }
@@ -264,10 +264,6 @@ void Scene::actionGauche()
     cout << c.West << endl;
     if (c.West)
     {
-        std::string soundpathname = "data/Duck-quacking-sound.wav";
-        ALuint source = initSound(soundpathname, -15, 0, 0);
-
-        alSourcePlay(source);
         perso->pos_x--;
     }
 }
@@ -280,10 +276,6 @@ void Scene::actionFace()
     cout << c.North << endl;
     if (c.North)
     {
-        std::string soundpathname = "data/Duck-quacking-sound.wav";
-        ALuint source = initSound(soundpathname, 0, 0, -15);
-
-        alSourcePlay(source);
         perso->pos_y--;
     }
 }
