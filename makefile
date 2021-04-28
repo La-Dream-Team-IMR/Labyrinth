@@ -8,7 +8,9 @@ labyrinth: main.cpp
 EXEC = main
 
 # liste des modules utilisateur : tous les .cpp (privés de cette extension) du dossier courant
-MODULES = $(basename $(wildcard [A-Z]*.cpp labyrinthe/*.cpp))
+MODULES = $(basename $(wildcard [A-Z]*.cpp))
+
+MODULES_LAB = $(basename $(wildcard labyrinthe/*.cpp))
 
 # liste des modules de libs : tous les .cpp (privés de cette extension) du dossier libs
 MODULES_LIBS = $(basename $(wildcard libs/*.cpp libs/*/*.cpp))
@@ -29,7 +31,7 @@ run:	$(EXEC)
 	./$(EXEC)
 
 # édition des liens entre tous les fichiers objets
-$(EXEC): .o/main.o $(patsubst %,.o/%.o,$(notdir $(MODULES))) $(addsuffix .o,$(MODULES_LIBS))
+$(EXEC): .o/main.o $(patsubst %,.o/%.o,$(notdir $(MODULES))) $(addsuffix .o,$(MODULES_LIBS)) $(addsuffix .o,$(MODULES_LAB))
 	$(CXX) -o $@ $^ $(LIBS)
 
 # compilation d'un module
@@ -38,6 +40,9 @@ $(EXEC): .o/main.o $(patsubst %,.o/%.o,$(notdir $(MODULES))) $(addsuffix .o,$(MO
 
 # compilation des librairies
 libs/%.o: libs/%.cpp libs/%.h
+
+# test labyrinthe handling
+labyrinthe/%o: labyrinthe/%cpp labyrinthe/%.h
 
 # dossier .o/
 .o:
