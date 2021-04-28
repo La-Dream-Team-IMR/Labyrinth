@@ -8,7 +8,7 @@ labyrinth: main.cpp
 EXEC = main
 
 # liste des modules utilisateur : tous les .cpp (privés de cette extension) du dossier courant
-MODULES = $(basename $(wildcard [A-Z]*.cpp))
+MODULES = $(basename $(wildcard [A-Z]*.cpp labyrinthe/*.cpp))
 
 # liste des modules de libs : tous les .cpp (privés de cette extension) du dossier libs
 MODULES_LIBS = $(basename $(wildcard libs/*.cpp libs/*/*.cpp))

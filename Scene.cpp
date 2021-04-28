@@ -11,14 +11,14 @@
 #include <utils.h>
 
 #include "Scene.h"
-#include "Labyrinthe.h"
-#include "Case.h"
+#include "labyrinthe/Case.h"
+#include "labyrinthe/Labyrinthe.h"
 #include "Perso.h"
 
 using namespace std;
 
 /** constructeur */
-Scene::Scene()
+Scene::Scene(Labyrinthe *labGenerated)
 {
     // créer les objets à dessiner
     m_Cube = new Cube("data/white_noise.wav");
@@ -32,7 +32,7 @@ Scene::Scene()
     m_Light->setDirection(0.0, -1.0, -1.0, 0.0);
     m_Light->setAngles(30.0, 40.0);*/
 
-    lab = new Labyrinthe(2);
+    lab = labGenerated;
     perso = new Perso();
 
     // couleur du fond : gris foncé
@@ -151,18 +151,25 @@ void Scene::onKeyDown(int code)
     case GLFW_KEY_RIGHT:
         std::cout << "Droite" << std::endl;
         actionDroite();
+        action();
         break;
     case GLFW_KEY_LEFT:
         std::cout << "Gauche" << std::endl;
         actionGauche();
+        action();
         break;
     case GLFW_KEY_UP:
         std::cout << "Face" << std::endl;
         actionFace();
+        action();
         break;
     case GLFW_KEY_DOWN:
         std::cout << "Arrière" << std::endl;
         actionArriere();
+        action();
+        break;
+    case GLFW_KEY_ENTER:
+        action();
         break;
     default:
         return;
@@ -170,6 +177,38 @@ void Scene::onKeyDown(int code)
 
     // appliquer le décalage au centre de la rotation
     vec3::add(m_Center, m_Center, offset);
+}
+
+/**
+ * Appelé quand appuie sur touche directionnel
+ */
+void Scene::action()
+{
+    Case c = lab->getPosition(perso->pos_x, perso->pos_y);
+    std::string soundpathname = "data/Duck-quacking-sound.wav";
+    ALsizei nbSource = 0;
+    ALuint sources[4];
+    if (c.West)
+    {
+        nbSource++;
+        sources[0] = initSound(soundpathname, -15, 0, 0);
+    }
+    if (c.East)
+    {
+        nbSource++;
+        sources[1] = initSound(soundpathname, 15, 0, 0);
+    }
+    if (c.North)
+    {
+        nbSource++;
+        sources[2] = initSound(soundpathname, 0, 0, -15);
+    }
+    if (c.South)
+    {
+        nbSource++;
+        sources[3] = initSound(soundpathname, 0, 0, 15);
+    }
+    alSourcePlayv(nbSource, sources);
 }
 
 ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
@@ -212,7 +251,7 @@ void Scene::actionDroite()
         std::string soundpathname = "data/Duck-quacking-sound.wav";
         ALuint source = initSound(soundpathname, 15, 0, 0);
         alSourcePlay(source);
-        
+
         perso->pos_x++;
     }
 }
@@ -257,10 +296,6 @@ void Scene::actionArriere()
     cout << c.South << endl;
     if (c.South)
     {
-        std::string soundpathname = "data/Duck-quacking-sound.wav";
-        ALuint source = initSound(soundpathname, 0, 0, 15);
-
-        alSourcePlay(source);
         perso->pos_y++;
     }
 }
@@ -313,5 +348,5 @@ Scene::~Scene()
 {
     delete m_Cube;
     delete m_Ground;
-    delete lab;
+    //delete lab;
 }
