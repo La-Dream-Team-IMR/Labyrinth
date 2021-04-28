@@ -7,19 +7,26 @@
 
 #include "Case.h"
 #include <vector>
+#include <cstdint>
 
 class Labyrinthe
 {
 public:
     Labyrinthe() : Labyrinthe(5) {}
-    explicit Labyrinthe(unsigned short size);
+    explicit Labyrinthe(uint8_t size);
     ~Labyrinthe() = default;
 
-    const struct Case& getPosition(unsigned short x, unsigned short y);
+    const struct Case& getPosition(uint8_t x, uint8_t y);
+
+    const uint8_t& getSize() const { return _size; }
 
 private:
-    unsigned short _size;
+    uint8_t _size;
     std::vector<struct Case> _lab;
+
+    void generate();
+
+    void setPosition(const struct Case &c, uint8_t x, uint8_t y);
 };
 
 
