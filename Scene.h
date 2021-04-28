@@ -12,7 +12,7 @@
 
 #include "AL/al.h"
 
-#include "Labyrinthe.h"
+class Labyrinthe;
 
 
 class Scene
@@ -49,6 +49,11 @@ private:
     ALuint buffer, source;
 
     /**
+     * Appelé quand appuie sur touche directionnel
+     */
+    void action();
+    
+    /**
      * Appelé quand appuie sur touche droite
      */
     void actionDroite();
@@ -78,7 +83,7 @@ private:
 public:
 
     /** constructeur, crée les objets 3D à dessiner */
-    Scene();
+    Scene(Labyrinthe* labGenerated);
 
     /** destructeur, libère les ressources */
     ~Scene();
