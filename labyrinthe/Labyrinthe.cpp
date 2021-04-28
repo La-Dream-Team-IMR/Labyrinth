@@ -7,50 +7,46 @@
 
 #include "Labyrinthe.h"
 
-Labyrinthe::Labyrinthe(unsigned short size) : _size(size), _lab(size*size)
+Labyrinthe::Labyrinthe(uint8_t size) : _size(size), _lab(size*size)
 {
     generate();
 }
 
-const struct Case& Labyrinthe::getPosition(unsigned short x, unsigned short y)
+const struct Case& Labyrinthe::getPosition(uint8_t x, uint8_t y)
 {
-    unsigned short offset = x + _size * y;
+    uint8_t offset = x + _size * y;
 
     return _lab.at(offset);
 }
 
-void Labyrinthe::setPosition(const Case &c, unsigned int x, unsigned int y)
+void Labyrinthe::setPosition(const Case &c, uint8_t x, uint8_t y)
 {
-    unsigned short offset = x + _size * y;
+    uint64_t offset = x + _size * y;
     _lab.at(offset) = c;
 }
 
 void Labyrinthe::generate()
 {
     std::random_device os_seed;
-    const unsigned short seed = os_seed();
+    const uint8_t seed = os_seed();
 
     std::mt19937 generator(seed);
-    std::uniform_int_distribution<unsigned short> distribution(0, 1);
+    std::uniform_int_distribution<uint8_t> distribution(0, 1);
 
     for(unsigned int i = 0; i < _size - 1; ++i)
     {
         struct Case c;
 
-        c = getPosition(_size - 1, i);
-        c.East = true;
+        c.set(Direction::East);
         setPosition(c, _size - 1, i);
 
-        c = getPosition(_size - 1, i + 1);
-        c.West = true;
+        c.set(Direction::West);
         setPosition(c, _size - 1, i + 1);
 
-        c = getPosition(i, _size - 1);
-        c.South = true;
+        c.set(Direction::South);
         setPosition(c, i, _size - 1);
 
-        c = getPosition(i + 1, _size - 1);
-        c.North = true;
+        c.set(Direction::North);
         setPosition(c, i + 1, _size - 1);
     }
 
