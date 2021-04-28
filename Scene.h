@@ -24,6 +24,7 @@ private:
     Ground* m_Ground;
     Labyrinthe* lab;
     struct Perso* perso;
+    ALuint sources[4];
 
     // lampes
     Light* m_Light;

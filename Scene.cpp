@@ -34,6 +34,11 @@ Scene::Scene(Labyrinthe *labGenerated)
 
     lab = labGenerated;
     perso = new Perso();
+    sources[0] = initSound("data/white_noise.wav", 0,0,0);
+    sources[1] = initSound("data/white_noise.wav", 0,0,0);
+    sources[2] = initSound("data/white_noise.wav", 0,0,0);
+    sources[3] = initSound("data/white_noise.wav", 0,0,0);
+
 
     // couleur du fond : gris foncé
     glClearColor(0.4, 0.4, 0.4, 0.0);
@@ -54,6 +59,7 @@ Scene::Scene(Labyrinthe *labGenerated)
     m_Distance = 0.0;
     m_Center = vec3::create();
     m_Clicked = false;
+    action();
 }
 
 /**
@@ -186,31 +192,17 @@ void Scene::action()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
     cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl;
-    string soundpathname = "data/Duck-quacking-sound.wav";
-    //string soundpathname = "data/chouette2.wav";
-    ALsizei nbSource = 0;
-    ALuint sources[4];
-    if (c.West)
-    {
-        sources[nbSource] = initSound(soundpathname, -15, 0, 0);
-        nbSource++;
-    }
-    if (c.East)
-    {
-        sources[nbSource] = initSound(soundpathname, 15, 0, 0);
-        nbSource++;
-    }
-    if (c.North)
-    {
-        sources[nbSource] = initSound(soundpathname, 0, 0, -15);
-        nbSource++;
-    }
-    if (c.South)
-    {
-        sources[nbSource] = initSound(soundpathname, 0, 0, 15);
-        nbSource++;
-    }
-    alSourcePlayv(nbSource, sources);
+    string soundpathname = "data/chouette2.wav";
+    string soundMur = "data/white_noise.wav";
+
+    alSourceStopv(4, sources);
+    //ALsizei nbSource = 0;
+    sources[0] = c.West ? initSound(soundpathname, -15, 0, 0) : initSound(soundMur, -15, 0, 0);
+    sources[1] = c.North ? initSound(soundpathname, 0, 0, -15) : initSound(soundMur, 0, 0, -15);
+    sources[2] = c.East ? initSound(soundpathname, 15, 0, 0) : initSound(soundMur, 15, 0, 0);
+    sources[3] = c.South ? initSound(soundpathname, 0, 0, 15) : initSound(soundMur, 0, 0, 15);
+    
+    alSourcePlayv(4, sources);
 }
 
 ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
@@ -233,7 +225,7 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
     // propriétés de la source à l'origine
     alSource3f(source, AL_POSITION, right, up, back); // on positionne la source à (0,0,0) par défaut
     alSource3f(source, AL_VELOCITY, 0, 0, 0);
-    alSourcei(source, AL_LOOPING, AL_FALSE);
+    alSourcei(source, AL_LOOPING, AL_TRUE);
     // dans un cone d'angle [-inner/2,inner/2] il n'y a pas d'attenuation
     alSourcef(source, AL_CONE_INNER_ANGLE, 20);
     // dans un cone d'angle [-outer/2,outer/2] il y a une attenuation linéaire entre 0 et le gain
