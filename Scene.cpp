@@ -14,12 +14,46 @@
 #include "labyrinthe/Case.h"
 #include "labyrinthe/Labyrinthe.h"
 #include "Perso.h"
+#include "Mur.h"
+
+#include "VisualLab.h"
 
 using namespace std;
 
 /** constructeur */
-Scene::Scene(Labyrinthe *labGenerated)
+Scene::Scene()
 {
+    Labyrinthe lab(10);
+    m_mur = new Mur(5,5);
+
+    v_lab = new VisualLab(lab);
+
+    const auto size = lab.getSize();
+
+    std::cout << "__________" << std::endl;
+
+    for (uint8_t i = 0; i < size; ++i)
+    {
+        for (uint8_t j = 0; j < size; ++j)
+        {
+            auto c = lab.getPosition(i, j);
+
+            if (!c.South)
+                std::cout << "_";
+            else
+                std::cout << " ";
+
+            if (!c.East)
+                std::cout << "|";
+            else
+                std::cout << " ";
+            int index = i + j * 10;
+        }
+
+        std::cout << std::endl;
+    }
+
+    /*
     // créer les objets à dessiner
     m_Cube = new Cube("data/white_noise.wav");
     //m_Cube->setPosition(vec3::fromValues(0.5, 0.0, 0.0));
@@ -32,13 +66,11 @@ Scene::Scene(Labyrinthe *labGenerated)
     m_Light->setDirection(0.0, -1.0, -1.0, 0.0);
     m_Light->setAngles(30.0, 40.0);*/
 
-    lab = labGenerated;
     perso = new Perso();
-    sources[0] = initSound("data/white_noise.wav", 0,0,0);
-    sources[1] = initSound("data/white_noise.wav", 0,0,0);
-    sources[2] = initSound("data/white_noise.wav", 0,0,0);
-    sources[3] = initSound("data/white_noise.wav", 0,0,0);
-
+    //sources[0] = initSound("data/white_noise.wav", 0, 0, 0);
+    //sources[1] = initSound("data/white_noise.wav", 0, 0, 0);
+    //sources[2] = initSound("data/white_noise.wav", 0, 0, 0);
+    //sources[3] = initSound("data/white_noise.wav", 0, 0, 0);
 
     // couleur du fond : gris foncé
     glClearColor(0.4, 0.4, 0.4, 0.0);
@@ -52,14 +84,14 @@ Scene::Scene(Labyrinthe *labGenerated)
     m_MatV = mat4::create();
     m_MatVM = mat4::create();
     m_MatTMP = mat4::create();
-
+    /*
     // gestion vue et souris
     m_Azimut = 0.0;
     m_Elevation = 0.0;
     m_Distance = 0.0;
-    m_Center = vec3::create();
+    m_Center = vec3::create();*/
     m_Clicked = false;
-    action();
+    //action();
 }
 
 /**
@@ -111,6 +143,7 @@ void Scene::onMouseMove(double x, double y)
 {
     if (!m_Clicked)
         return;
+    /*
     m_Azimut += (x - m_MousePrecX) * 0.1;
     m_Elevation += (y - m_MousePrecY) * 0.1;
     if (m_Elevation > 90.0)
@@ -119,6 +152,7 @@ void Scene::onMouseMove(double x, double y)
         m_Elevation = -90.0;
     m_MousePrecX = x;
     m_MousePrecY = y;
+    */
 }
 
 /**
@@ -129,13 +163,14 @@ void Scene::onKeyDown(int code)
 {
     // construire la matrice inverse de l'orientation de la vue à la souris
     mat4::identity(m_MatTMP);
-    mat4::rotateY(m_MatTMP, m_MatTMP, Utils::radians(-m_Azimut));
-    mat4::rotateX(m_MatTMP, m_MatTMP, Utils::radians(-m_Elevation));
+    //mat4::rotateY(m_MatTMP, m_MatTMP, Utils::radians(-m_Azimut));
+    //mat4::rotateX(m_MatTMP, m_MatTMP, Utils::radians(-m_Elevation));
 
     // vecteur indiquant le décalage à appliquer au pivot de la rotation
     vec3 offset = vec3::create();
     switch (code)
     {
+    /*
     case GLFW_KEY_W: // avant
         m_Distance *= exp(-0.01);
         break;
@@ -154,6 +189,7 @@ void Scene::onKeyDown(int code)
     case GLFW_KEY_Z: // bas
         vec3::transformMat4(offset, vec3::fromValues(0, +0.1, 0), m_MatTMP);
         break;
+        */
     case GLFW_KEY_RIGHT:
         std::cout << "Droite" << std::endl;
         actionDroite();
@@ -182,7 +218,7 @@ void Scene::onKeyDown(int code)
     }
 
     // appliquer le décalage au centre de la rotation
-    vec3::add(m_Center, m_Center, offset);
+    //vec3::add(m_Center, m_Center, offset);
 }
 
 /**
@@ -201,7 +237,7 @@ void Scene::action()
     sources[1] = c.North ? initSound(soundpathname, 0, 0, -15) : initSound(soundMur, 0, 0, -15);
     sources[2] = c.East ? initSound(soundpathname, 15, 0, 0) : initSound(soundMur, 15, 0, 0);
     sources[3] = c.South ? initSound(soundpathname, 0, 0, 15) : initSound(soundMur, 0, 0, 15);
-    
+
     alSourcePlayv(4, sources);
 }
 
@@ -295,17 +331,19 @@ void Scene::onDrawFrame()
     mat4::identity(m_MatV);
 
     // éloignement de la scène
-    mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
+    //mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
+    mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -99));
+    mat4::rotateX(m_MatV, m_MatV, Utils::radians(90));
 
     // rotation demandée par la souris
-    mat4::rotateX(m_MatV, m_MatV, Utils::radians(m_Elevation));
-    mat4::rotateY(m_MatV, m_MatV, Utils::radians(m_Azimut));
+    //mat4::rotateX(m_MatV, m_MatV, Utils::radians(m_Elevation));
+    //mat4::rotateY(m_MatV, m_MatV, Utils::radians(m_Azimut));
 
     // centre des rotations
-    mat4::translate(m_MatV, m_MatV, m_Center);
+    //mat4::translate(m_MatV, m_MatV, m_Center);
 
     /** gestion des lampes **/
-
+    /*
     // calculer la position et la direction de la lampe par rapport à la scène
     m_Light->transform(m_MatV);
 
@@ -318,11 +356,16 @@ void Scene::onDrawFrame()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // dessiner le sol
-    m_Ground->onDraw(m_MatP, m_MatV);
+    /*m_Ground->onDraw(m_MatP, m_MatV);
 
-    m_Cube->onRender(m_MatP, m_MatV);
+    m_Cube->onRender(m_MatP, m_MatV);*/
 
-    // dessiner le canard en mouvement
+    //m_Mur->onRender(m_MatP, m_MatV);
+    
+    //m_mur->setPosition(vec2::fromValues(2,2));
+    //m_mur->onRender(m_MatP, m_MatV);
+    v_lab->onRender(m_MatP, m_MatV);
+
     mat4::rotateY(m_MatV, m_MatV, -Utils::Time * 0.8);
     mat4::translate(m_MatV, m_MatV, vec3::fromValues(1.0, 0.0, 0.0));
 }
@@ -330,7 +373,8 @@ void Scene::onDrawFrame()
 /** supprime tous les objets de cette scène */
 Scene::~Scene()
 {
-    delete m_Cube;
-    delete m_Ground;
-    //delete lab;
+    //delete m_Cube;
+    //delete m_Ground;
+    delete lab;
+    //delete m_Case;
 }

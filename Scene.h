@@ -12,7 +12,12 @@
 
 #include "AL/al.h"
 
+#include <vector>
+
+class VisualLab;
+
 class Labyrinthe;
+class Mur;
 
 
 class Scene
@@ -20,27 +25,32 @@ class Scene
 private:
 
     // objets de la scène
-    Cube* m_Cube;
-    Ground* m_Ground;
+    /*Cube* m_Cube;
+    Ground* m_Ground;*/
     Labyrinthe* lab;
     struct Perso* perso;
     ALuint sources[4];
+    Mur* m_mur;
+
+    VisualLab* v_lab;
 
     // lampes
+    /*
     Light* m_Light;
+    */
 
     // matrices de transformation des objets de la scène
     mat4 m_MatP;
     mat4 m_MatV;
     mat4 m_MatVM;
     mat4 m_MatTMP;
-
+/*
     // caméra table tournante
     float m_Azimut;
     float m_Elevation;
     float m_Distance;
     vec3 m_Center;
-
+*/
     // souris
     bool m_Clicked;
     double m_MousePrecX;
@@ -84,7 +94,7 @@ private:
 public:
 
     /** constructeur, crée les objets 3D à dessiner */
-    Scene(Labyrinthe* labGenerated);
+    Scene();
 
     /** destructeur, libère les ressources */
     ~Scene();
