@@ -7,12 +7,12 @@
 
 #include "Labyrinthe.h"
 
-Labyrinthe::Labyrinthe(uint8_t size) : _size(size), _lab(size*size)
+Labyrinthe::Labyrinthe(uint8_t size) : _size(size), _lab(size * size)
 {
     generate();
 }
 
-const struct Case& Labyrinthe::getPosition(uint8_t x, uint8_t y)
+const struct Case &Labyrinthe::getPosition(uint8_t x, uint8_t y)
 {
     uint8_t offset = x + _size * y;
 
@@ -33,7 +33,7 @@ void Labyrinthe::generate()
     std::mt19937 generator(seed);
     std::uniform_int_distribution<uint8_t> distribution(0, 1);
 
-    for(unsigned int i = 0; i < _size - 1; ++i)
+    for (unsigned int i = 0; i < _size - 1; ++i)
     {
         struct Case c;
 
@@ -50,14 +50,14 @@ void Labyrinthe::generate()
         setPosition(c, i + 1, _size - 1);
     }
 
-    for(uint8_t i = 0; i < _size - 1; ++i)
+    for (uint8_t i = 0; i < _size - 1; ++i)
     {
-        for(uint8_t j = 0; j < _size - 1; ++j)
+        for (uint8_t j = 0; j < _size - 1; ++j)
         {
             struct Case une = getPosition(i, j);
             struct Case deux = getPosition(i + 1, j);
 
-            if(distribution(generator) == 0)
+            if (distribution(generator) == 0)
             {
                 une.South = true;
                 deux.North = true;

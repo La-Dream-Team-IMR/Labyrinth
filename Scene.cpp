@@ -12,23 +12,22 @@
 
 #include "Scene.h"
 #include "labyrinthe/Case.h"
+#include "labyrinthe/VisualCase.h"
 #include "labyrinthe/Labyrinthe.h"
 #include "Perso.h"
 #include "Mur.h"
-
-#include "VisualLab.h"
 
 using namespace std;
 
 /** constructeur */
 Scene::Scene()
 {
-    Labyrinthe lab(10);
-    m_mur = new Mur(5,5);
+    lab = new Labyrinthe(10);
 
-    v_lab = new VisualLab(lab);
+    //v_lab = new VisualLab(lab);
 
-    const auto size = lab.getSize();
+    const auto size = lab->getSize();
+    //v_cases = vector<VisualCase>(size*size);
 
     std::cout << "__________" << std::endl;
 
@@ -36,7 +35,7 @@ Scene::Scene()
     {
         for (uint8_t j = 0; j < size; ++j)
         {
-            auto c = lab.getPosition(i, j);
+            auto c = lab->getPosition(i, j);
 
             if (!c.South)
                 std::cout << "_";
@@ -88,8 +87,8 @@ Scene::Scene()
     // gestion vue et souris
     m_Azimut = 0.0;
     m_Elevation = 0.0;
-    m_Distance = 0.0;
-    m_Center = vec3::create();*/
+    m_Distance = 0.0;*/
+    m_Center = vec3::create();
     m_Clicked = false;
     //action();
 }
@@ -177,19 +176,20 @@ void Scene::onKeyDown(int code)
     case GLFW_KEY_S: // arrière
         m_Distance *= exp(+0.01);
         break;
+        */
     case GLFW_KEY_A: // droite
         vec3::transformMat4(offset, vec3::fromValues(+0.1, 0, 0), m_MatTMP);
         break;
     case GLFW_KEY_D: // gauche
         vec3::transformMat4(offset, vec3::fromValues(-0.1, 0, 0), m_MatTMP);
         break;
-    case GLFW_KEY_Q: // haut
-        vec3::transformMat4(offset, vec3::fromValues(0, -0.1, 0), m_MatTMP);
+    case GLFW_KEY_S: // haut
+        vec3::transformMat4(offset, vec3::fromValues(0, 0, -0.1), m_MatTMP);
         break;
-    case GLFW_KEY_Z: // bas
-        vec3::transformMat4(offset, vec3::fromValues(0, +0.1, 0), m_MatTMP);
+    case GLFW_KEY_W: // bas
+        vec3::transformMat4(offset, vec3::fromValues(0, 0, +0.1), m_MatTMP);
         break;
-        */
+
     case GLFW_KEY_RIGHT:
         std::cout << "Droite" << std::endl;
         actionDroite();
@@ -218,7 +218,7 @@ void Scene::onKeyDown(int code)
     }
 
     // appliquer le décalage au centre de la rotation
-    //vec3::add(m_Center, m_Center, offset);
+    vec3::add(m_Center, m_Center, offset);
 }
 
 /**
@@ -340,7 +340,7 @@ void Scene::onDrawFrame()
     //mat4::rotateY(m_MatV, m_MatV, Utils::radians(m_Azimut));
 
     // centre des rotations
-    //mat4::translate(m_MatV, m_MatV, m_Center);
+    mat4::translate(m_MatV, m_MatV, m_Center);
 
     /** gestion des lampes **/
     /*
@@ -361,11 +361,45 @@ void Scene::onDrawFrame()
     m_Cube->onRender(m_MatP, m_MatV);*/
 
     //m_Mur->onRender(m_MatP, m_MatV);
-    
+
     //m_mur->setPosition(vec2::fromValues(2,2));
     //m_mur->onRender(m_MatP, m_MatV);
-    v_lab->onRender(m_MatP, m_MatV);
+    //v_lab->onRender(m_MatP, m_MatV);
+    //lab->onRender(m_MatP, m_MatV);
+    //VisualCase vc = VisualCase();
+    //Case c = lab->getPosition(0,0);
+    //vc.set(c,0,0);
+    //vc.North.onRender(m_MatP, m_MatV);
+    int size = lab->getSize();
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            Case c = lab->getPosition(i, j);
 
+            //cout << i << " " << j << " " << c.North << " " << c.East << " " << c.South << " " << c.West << endl;
+
+            /*Mur North = Mur(1, 4);
+            North.setDoor(c.North);
+            North.setPosition(vec2::fromValues(0 - j * 4, 2 - i * 4));
+            North.onRender(m_MatP, m_MatV);*/
+
+            Mur South = Mur(1, 4);
+            South.setDoor(c.South);
+            South.setPosition(vec2::fromValues(0 - j * 4, -2 - i * 4));
+            South.onRender(m_MatP, m_MatV);
+
+            Mur East = Mur(4, 1);
+            East.setDoor(c.East);
+            East.setPosition(vec2::fromValues(-2 - j * 4, 0 - i * 4));
+            East.onRender(m_MatP, m_MatV);
+
+            /*Mur West = Mur(4, 1);
+            West.setDoor(c.West);
+            West.setPosition(vec2::fromValues(2 - j * 4, 0 - i * 4));
+            West.onRender(m_MatP, m_MatV);*/
+        }
+    }
     mat4::rotateY(m_MatV, m_MatV, -Utils::Time * 0.8);
     mat4::translate(m_MatV, m_MatV, vec3::fromValues(1.0, 0.0, 0.0));
 }

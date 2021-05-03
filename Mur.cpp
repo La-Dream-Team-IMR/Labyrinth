@@ -63,14 +63,14 @@ Mur::Mur(float height, float width) : Mesh("Mur")
     Vertex *P3 = new Vertex(this, -a, 0.0f, +b);
 
     // couleurs
-    P0->setColor(0.0, 0.5, 1.0); // P0 bleu
-    P1->setColor(0.0, 0.5, 1.0); // P1 bleu
-    P2->setColor(0.0, 0.5, 1.0); // P2 bleu
-    P3->setColor(0.0, 0.5, 1.0); // P3 bleu
+    P0->setColor(1.0, 0.75, 0.79); // P0 rose
+    P1->setColor(0.58, 0.0, 0.827); // P1 violet
+    P2->setColor(0.0, 0.75, 1.0); // P2 bleu ciel
+    P3->setColor(0.0, 0.0, 1.0); // P3 bleu foncé
 
     // quads
     addQuad(P1, P0, P3, P2);
-    addQuad(P2, P3, P0, P1);
+    //addQuad(P2, P3, P0, P1);
 }
 
 /**

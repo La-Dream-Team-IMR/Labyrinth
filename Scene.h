@@ -19,20 +19,19 @@ class VisualLab;
 class Labyrinthe;
 class Mur;
 
-
 class Scene
 {
 private:
-
     // objets de la scène
     /*Cube* m_Cube;
     Ground* m_Ground;*/
-    Labyrinthe* lab;
-    struct Perso* perso;
+    Labyrinthe *lab;
+    struct Perso *perso;
     ALuint sources[4];
-    Mur* m_mur;
+    //Mur* m_murs;
+    //std::vector<VisualCase> v_cases;
 
-    VisualLab* v_lab;
+    //VisualLab* v_lab;
 
     // lampes
     /*
@@ -44,13 +43,14 @@ private:
     mat4 m_MatV;
     mat4 m_MatVM;
     mat4 m_MatTMP;
-/*
+    /*
     // caméra table tournante
     float m_Azimut;
     float m_Elevation;
     float m_Distance;
+    */
     vec3 m_Center;
-*/
+
     // souris
     bool m_Clicked;
     double m_MousePrecX;
@@ -63,7 +63,7 @@ private:
      * Appelé quand appuie sur touche directionnel
      */
     void action();
-    
+
     /**
      * Appelé quand appuie sur touche droite
      */
@@ -90,9 +90,7 @@ private:
      */
     ALuint initSound(std::string soundpathname, int right, int up, int back);
 
-
 public:
-
     /** constructeur, crée les objets 3D à dessiner */
     Scene();
 
@@ -105,7 +103,6 @@ public:
      * @param height : hauteur en nombre de pixels de la fenêtre
      */
     void onSurfaceChanged(int width, int height);
-
 
     /**
      * appelée quand on enfonce un bouton de la souris
