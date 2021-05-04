@@ -12,7 +12,6 @@
 
 #include "Scene.h"
 #include "labyrinthe/Case.h"
-#include "labyrinthe/VisualCase.h"
 #include "labyrinthe/Labyrinthe.h"
 #include "Perso.h"
 #include "Mur.h"
@@ -22,6 +21,7 @@ using namespace std;
 /** constructeur */
 Scene::Scene()
 {
+    premier = true;
     lab = new Labyrinthe(10);
 
     //v_lab = new VisualLab(lab);
@@ -248,9 +248,9 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
     // ALuint buffer = alutCreateBufferHelloWorld();
     if (buffer == AL_NONE)
     {
-        alGetError();
+        ALenum chose = alGetError();
         string truc = alutGetErrorString(alutGetError());
-        std::cerr << "unable to open file " << soundpathname << truc << std::endl;
+        std::cerr << "unable to open file " << soundpathname << truc << chose << std::endl;
         throw std::runtime_error("file not found or not readable");
     }
     ALuint source;
@@ -370,12 +370,34 @@ void Scene::onDrawFrame()
     //Case c = lab->getPosition(0,0);
     //vc.set(c,0,0);
     //vc.North.onRender(m_MatP, m_MatV);
+    string soundpathname = "data/chouette2.wav";
     int size = lab->getSize();
+    int indexSource = 0;
     for (int i = 0; i < size; i++)
     {
         for (int j = 0; j < size; j++)
         {
+
             Case c = lab->getPosition(i, j);
+            if (premier)
+            {
+                if (c.South)
+                {
+                    sources[indexSource] = initSound(soundpathname, j * 4, 0, 2 + i * 4);
+                    indexSource++;
+                }
+                if (c.East)
+                {
+                    sources[indexSource] = initSound(soundpathname, 2 + j * 4, 0, i * 4);
+                    indexSource++;
+                }
+            }
+            Mur South = Mur(1, 4);
+            South.setDoor(c.South);
+            South.setPosition(vec2::fromValues(0 - j * 4, -2 - i * 4));
+            Mur East = Mur(4, 1);
+            East.setDoor(c.East);
+            East.setPosition(vec2::fromValues(-2 - j * 4, 0 - i * 4));
 
             //cout << i << " " << j << " " << c.North << " " << c.East << " " << c.South << " " << c.West << endl;
 
@@ -384,14 +406,8 @@ void Scene::onDrawFrame()
             North.setPosition(vec2::fromValues(0 - j * 4, 2 - i * 4));
             North.onRender(m_MatP, m_MatV);*/
 
-            Mur South = Mur(1, 4);
-            South.setDoor(c.South);
-            South.setPosition(vec2::fromValues(0 - j * 4, -2 - i * 4));
-            South.onRender(m_MatP, m_MatV);
+            South.onRender((m_MatP), (m_MatV));
 
-            Mur East = Mur(4, 1);
-            East.setDoor(c.East);
-            East.setPosition(vec2::fromValues(-2 - j * 4, 0 - i * 4));
             East.onRender(m_MatP, m_MatV);
 
             /*Mur West = Mur(4, 1);
@@ -399,6 +415,11 @@ void Scene::onDrawFrame()
             West.setPosition(vec2::fromValues(2 - j * 4, 0 - i * 4));
             West.onRender(m_MatP, m_MatV);*/
         }
+    }
+    if (premier)
+    {
+        premier = false;
+        alSourcePlayv(indexSource, sources);
     }
     mat4::rotateY(m_MatV, m_MatV, -Utils::Time * 0.8);
     mat4::translate(m_MatV, m_MatV, vec3::fromValues(1.0, 0.0, 0.0));

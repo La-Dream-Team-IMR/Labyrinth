@@ -27,8 +27,9 @@ private:
     Ground* m_Ground;*/
     Labyrinthe *lab;
     struct Perso *perso;
-    ALuint sources[4];
-    //Mur* m_murs;
+    ALuint sources[256];
+
+    bool premier;
     //std::vector<VisualCase> v_cases;
 
     //VisualLab* v_lab;

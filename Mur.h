@@ -8,10 +8,10 @@
 class Mur : public Mesh
 {
 private:
-    Material* m_Material;
+    Material *m_Material;
 
     ALuint buffer, source;
-    
+
     vec2 m_position;
 
     bool m_hasDoor;
@@ -20,7 +20,7 @@ private:
 
 public:
     Mur(float height, float width);
-    Mur() : Mur(1, 1){}
+    Mur() : Mur(1, 1) {}
     ~Mur();
 
     /**
@@ -28,13 +28,13 @@ public:
      * @param matP : matrice de projection
      * @param matMV : matrice view*model (caméra * position objet)
      */
-    void onRender(const mat4& matP, const mat4& matMV);
+    void onRender(const mat4 &matP, const mat4 &matMV);
 
     /**
      * retourne la position % scèce du cube
      * @return vec2 position
      */
-    vec2& getPosition();
+    vec2 &getPosition();
 
     /**
      * affecte la position % scène du cube
@@ -46,7 +46,8 @@ public:
      * retourne l'ouverture ou non du mur
      * @return bool state
      */
-    bool hasDoor() {
+    bool hasDoor()
+    {
         return m_hasDoor;
     }
 
@@ -59,6 +60,5 @@ public:
         m_hasDoor = state;
     }
 };
-
 
 #endif
