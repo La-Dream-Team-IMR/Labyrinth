@@ -88,7 +88,10 @@ void Mur::onRender(const mat4 &matP, const mat4 &matMV)
 
     if (!m_hasDoor)
     {
-        onDraw(matP, matMV);
+        mat4 out = mat4::clone(matMV);
+        mat4::translate(out, out, vec3::fromValues(-m_position[0], 0, -m_position[1]));
+
+        onDraw(matP, out);
     }
 }
 
@@ -112,10 +115,10 @@ void Mur::setPosition(vec2 pos)
     const float a = -width / 2.0f; //- à cause du repère xyz
     const float b = -height / 2.0f;
 
-    getVertexList().at(0)->setCoords(+a - m_position[0], 0.0f, +b - m_position[1]);
+    /*getVertexList().at(0)->setCoords(+a - m_position[0], 0.0f, +b - m_position[1]);
     getVertexList().at(1)->setCoords(+a - m_position[0], 0.0f, -b - m_position[1]);
     getVertexList().at(2)->setCoords(-a - m_position[0], 0.0f, -b - m_position[1]);
-    getVertexList().at(3)->setCoords(-a - m_position[0], 0.0f, +b - m_position[1]);
+    getVertexList().at(3)->setCoords(-a - m_position[0], 0.0f, +b - m_position[1]);*/
 }
 
 Mur::~Mur()

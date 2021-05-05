@@ -51,9 +51,9 @@ Scene::Scene()
             else
                 std::cout << " ";
 
-            sources[indexSource] = c.South ? initSound(soundpathname, j * 4, 0, 2 + i * 4) : initSound(soundMur, j * 4, 0, 2 + i * 4);
+            sources[indexSource] = c.South ? initSound(soundpathname, i * 4, 0, 2 + j * 4) : initSound(soundMur, i * 4, 0, 2 + j * 4);
             indexSource++;
-            sources[indexSource] = c.East ? initSound(soundpathname, 2 + j * 4, 0, i * 4) : initSound(soundMur, 2 + j * 4, 0, i * 4);
+            sources[indexSource] = c.East ? initSound(soundpathname, 2 + i * 4, 0, j * 4) : initSound(soundMur, 2 + i * 4, 0, j * 4);
             indexSource++;
         }
 
@@ -241,10 +241,13 @@ void Scene::onKeyDown(int code)
 void Scene::action()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl << perso->pos_x << " " << perso->pos_y << endl;
-
-    alListener3f(AL_POSITION, perso->pos_x * 4, 0, -perso->pos_y * 4);
-    v_perso->setPosition(vec2::fromValues(-perso->pos_x * 4, -perso->pos_y * 4));
+    cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl
+         << perso->pos_x << " " << perso->pos_y << endl;
+    int x = perso->pos_x;
+    int y = perso->pos_y;
+    alListener3f(AL_POSITION, x * 4, 0, y * 4);
+    //v_perso->setPosition(vec2::fromValues(-perso->pos_x * 4, -perso->pos_y * 4));
+    v_perso->setPosition(vec2::fromValues(-x * 4, -y * 4));
 }
 
 ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
@@ -270,8 +273,8 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
     alSourcei(source, AL_LOOPING, AL_TRUE);
     // dans un cone d'angle [-inner/2,inner/2] il n'y a pas d'attenuation
     alSourcef(source, AL_CONE_INNER_ANGLE, 20);
-    alSourcef(source, AL_MAX_DISTANCE, 5);
-    alSourcei(source, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE_CLAMPED);
+    alSourcef(source, AL_MAX_DISTANCE, 1);
+    alSourcei(source, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE);
     // dans un cone d'angle [-outer/2,outer/2] il y a une attenuation linéaire entre 0 et le gain
     alSourcef(source, AL_CONE_OUTER_GAIN, 0);
     alSourcef(source, AL_CONE_OUTER_ANGLE, 360);
@@ -392,26 +395,26 @@ void Scene::onDrawFrame()
             }
             Mur South = Mur(1, 4);
             South.setDoor(c.South);
-            South.setPosition(vec2::fromValues(0 - j * 4, -2 - i * 4));
+            South.setPosition(vec2::fromValues(0 - i * 4, -2 - j * 4));
             Mur East = Mur(4, 1);
             East.setDoor(c.East);
-            East.setPosition(vec2::fromValues(-2 - j * 4, 0 - i * 4));
+            East.setPosition(vec2::fromValues(-2 - i * 4, 0 - j * 4));
 
             //cout << i << " " << j << " " << c.North << " " << c.East << " " << c.South << " " << c.West << endl;
 
-            /*Mur North = Mur(1, 4);
+            Mur North = Mur(1, 4);
             North.setDoor(c.North);
-            North.setPosition(vec2::fromValues(0 - j * 4, 2 - i * 4));
-            North.onRender(m_MatP, m_MatV);*/
+            North.setPosition(vec2::fromValues(0 - i * 4, 2 - j * 4));
+            North.onRender(m_MatP, m_MatV);
 
             South.onRender((m_MatP), (m_MatV));
 
             East.onRender(m_MatP, m_MatV);
 
-            /*Mur West = Mur(4, 1);
+            Mur West = Mur(4, 1);
             West.setDoor(c.West);
-            West.setPosition(vec2::fromValues(2 - j * 4, 0 - i * 4));
-            West.onRender(m_MatP, m_MatV);*/
+            West.setPosition(vec2::fromValues(2 - i * 4, 0 - j * 4));
+            West.onRender(m_MatP, m_MatV);
         }
     }
     if (premier)
@@ -420,6 +423,7 @@ void Scene::onDrawFrame()
         alSourcePlayv(indexSource, sources);
     }
 
+    cout << v_perso->getPosition()[0] << "," << v_perso->getPosition()[1] << endl;
     v_perso->onRender(m_MatP, m_MatV);
 }
 

@@ -9,7 +9,32 @@
 
 Labyrinthe::Labyrinthe(uint8_t size) : _size(size), _lab(size * size)
 {
-    generate();
+    //generate();
+    factice_generate();
+}
+
+void Labyrinthe::factice_generate() {
+    Case c;
+    c.set(Direction::East);
+    setPosition(c, 0, 0);
+    c.set(0xA);
+    setPosition(c, 1, 0);
+    c.set(Direction::South);
+    setPosition(c, 2, 0);
+
+    c.set(Direction::South);
+    setPosition(c, 0, 1);
+    c.set(0x3);
+    setPosition(c, 1, 1);
+    c.set(0x3);
+    setPosition(c, 2, 1);
+
+    c.set(0x5);
+    setPosition(c, 0, 2);
+    c.set(0xD);
+    setPosition(c, 1, 2);
+    c.set(0x9);
+    setPosition(c, 2, 2);
 }
 
 const struct Case &Labyrinthe::getPosition(uint8_t x, uint8_t y)
