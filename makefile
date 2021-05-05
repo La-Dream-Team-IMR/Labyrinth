@@ -61,7 +61,7 @@ icon:	run
 	-convert -quality 95 image.ppm ../$(shell basename $(dir $(CURDIR))).jpg
 
 # nettoyage complet : l'exécutable est supprimé aussi
-cleanall: clean
+cleanall: clea
 	rm -f main image.ppm
 
 # nettoyage du projet et des librairies
@@ -74,3 +74,5 @@ clean:
 # suppression des fichiers objets des librairies
 cleanlibs:
 	rm -fr $(addsuffix .o,$(MODULES_LIBS))
+
+rebuild: | clean $(EXEC)

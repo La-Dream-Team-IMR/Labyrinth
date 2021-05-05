@@ -28,6 +28,7 @@ private:
     void factice_generate();
 
     void setPosition(const struct Case &c, uint8_t x, uint8_t y);
+    struct Case& updatePosition(uint8_t x, uint8_t y);
 };
 
 
