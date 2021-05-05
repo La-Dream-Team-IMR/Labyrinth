@@ -106,33 +106,6 @@ void error_callback(int error, const char* description)
 /** point d'entrée du programme **/
 int main(int argc,char **argv)
 {
-
-    Labyrinthe lab(10);
-
-    const auto size = lab.getSize();
-
-    std::cout << "__________" << std::endl;
-
-    for(uint8_t i = 0; i < size; ++i)
-    {
-        for(uint8_t j = 0; j < size; ++j)
-        {
-            auto c = lab.getPosition(i, j);
-
-            if(!c.South)
-                std::cout << "_";
-            else
-                std::cout << " ";
-
-            if(!c.East)
-                std::cout << "|";
-            else
-                std::cout << " ";
-        }
-
-        std::cout << std::endl;
-    }
-
     // initialisation de GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -153,7 +126,7 @@ int main(int argc,char **argv)
     }
     glfwMakeContextCurrent(window);
     glfwSetWindowPos(window, 200, 200);
-    glfwSetWindowTitle(window, "Cameras - TurnTable");
+    glfwSetWindowTitle(window, "Labyrinth");
 
     // initialisation de glew
     GLenum err = glewInit();
@@ -175,7 +148,7 @@ int main(int argc,char **argv)
     alListener3f(AL_VELOCITY, 0, 0, 0);
 
     // création de la scène => création des objets...
-    scene = new Scene(&lab);
+    scene = new Scene();
     //debugGLFatal("new Scene()");
 
     // enregistrement des fonctions callbacks
@@ -186,6 +159,7 @@ int main(int argc,char **argv)
     glfwSetKeyCallback(window, onKeyboard);
 
     // affichage du mode d'emploi
+    // TODO Change the usage line
     std::cout << "Usage:" << std::endl;
     std::cout << "Left button to rotate object" << std::endl;
     std::cout << "Q,D (axis x) A,W (axis y) Z,S (axis z) keys to move" << std::endl;

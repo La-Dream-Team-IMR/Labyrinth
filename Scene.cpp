@@ -14,32 +14,60 @@
 #include "labyrinthe/Case.h"
 #include "labyrinthe/Labyrinthe.h"
 #include "Perso.h"
+#include "Mur.h"
+#include "VisualPerso.h"
 
 using namespace std;
 
 /** constructeur */
-Scene::Scene(Labyrinthe *labGenerated)
+Scene::Scene()
 {
-    // créer les objets à dessiner
-    m_Cube = new Cube("data/white_noise.wav");
-    //m_Cube->setPosition(vec3::fromValues(0.5, 0.0, 0.0));
-    m_Ground = new Ground();
+    premier = true;
+    lab = new Labyrinthe(3);
+    v_perso = new VisualPerso(1, 1);
 
-    // caractéristiques de la lampe
-    m_Light = new Light();
-    /*m_Light->setColor(500.0, 500.0, 500.0);
-    m_Light->setPosition(0.0,  16.0,  13.0, 1.0);
-    m_Light->setDirection(0.0, -1.0, -1.0, 0.0);
-    m_Light->setAngles(30.0, 40.0);*/
+    const auto size = lab->getSize();
 
-    lab = labGenerated;
+    indexSource = 0;
+    string soundpathname = "data/chouette2.wav";
+
+    std::cout << "__________" << std::endl;
+    for (uint8_t i = 0; i < size; ++i)
+    {
+        for (uint8_t j = 0; j < size; ++j)
+        {
+            auto c = lab->getPosition(i, j);
+
+            if (!c.South)
+                std::cout << "_";
+            else
+                std::cout << " ";
+
+            if (!c.East)
+                std::cout << "|";
+            else
+                std::cout << " ";
+
+            if (c.South)
+            {
+                sources[indexSource] = initSound(soundpathname, i * 50, 0, 25 + j * 50);
+                indexSource++;
+            }
+            if (c.East)
+            {
+                sources[indexSource] = initSound(soundpathname, 25 + i * 50, 0, j * 50);
+                indexSource++;
+            }
+        }
+
+        std::cout << std::endl;
+    }
+
     perso = new Perso();
-    sources[0] = initSound("data/white_noise.wav", 0,0,0);
-    sources[1] = initSound("data/white_noise.wav", 0,0,0);
-    sources[2] = initSound("data/white_noise.wav", 0,0,0);
-    sources[3] = initSound("data/white_noise.wav", 0,0,0);
 
-
+    alListener3f(AL_POSITION, perso->pos_x * 30, 0, perso->pos_y * 30);
+    ALfloat orientation[] = {0, 0, -1, 0, 1, 0};
+    alListenerfv(AL_DIRECTION, orientation);
     // couleur du fond : gris foncé
     glClearColor(0.4, 0.4, 0.4, 0.0);
 
@@ -53,12 +81,9 @@ Scene::Scene(Labyrinthe *labGenerated)
     m_MatVM = mat4::create();
     m_MatTMP = mat4::create();
 
-    // gestion vue et souris
-    m_Azimut = 0.0;
-    m_Elevation = 0.0;
-    m_Distance = 0.0;
     m_Center = vec3::create();
     m_Clicked = false;
+
     action();
 }
 
@@ -111,14 +136,6 @@ void Scene::onMouseMove(double x, double y)
 {
     if (!m_Clicked)
         return;
-    m_Azimut += (x - m_MousePrecX) * 0.1;
-    m_Elevation += (y - m_MousePrecY) * 0.1;
-    if (m_Elevation > 90.0)
-        m_Elevation = 90.0;
-    if (m_Elevation < -90.0)
-        m_Elevation = -90.0;
-    m_MousePrecX = x;
-    m_MousePrecY = y;
 }
 
 /**
@@ -129,31 +146,24 @@ void Scene::onKeyDown(int code)
 {
     // construire la matrice inverse de l'orientation de la vue à la souris
     mat4::identity(m_MatTMP);
-    mat4::rotateY(m_MatTMP, m_MatTMP, Utils::radians(-m_Azimut));
-    mat4::rotateX(m_MatTMP, m_MatTMP, Utils::radians(-m_Elevation));
 
     // vecteur indiquant le décalage à appliquer au pivot de la rotation
     vec3 offset = vec3::create();
     switch (code)
     {
-    case GLFW_KEY_W: // avant
-        m_Distance *= exp(-0.01);
-        break;
-    case GLFW_KEY_S: // arrière
-        m_Distance *= exp(+0.01);
-        break;
     case GLFW_KEY_A: // droite
         vec3::transformMat4(offset, vec3::fromValues(+0.1, 0, 0), m_MatTMP);
         break;
     case GLFW_KEY_D: // gauche
         vec3::transformMat4(offset, vec3::fromValues(-0.1, 0, 0), m_MatTMP);
         break;
-    case GLFW_KEY_Q: // haut
-        vec3::transformMat4(offset, vec3::fromValues(0, -0.1, 0), m_MatTMP);
+    case GLFW_KEY_S: // haut
+        vec3::transformMat4(offset, vec3::fromValues(0, 0, -0.1), m_MatTMP);
         break;
-    case GLFW_KEY_Z: // bas
-        vec3::transformMat4(offset, vec3::fromValues(0, +0.1, 0), m_MatTMP);
+    case GLFW_KEY_W: // bas
+        vec3::transformMat4(offset, vec3::fromValues(0, 0, +0.1), m_MatTMP);
         break;
+
     case GLFW_KEY_RIGHT:
         std::cout << "Droite" << std::endl;
         actionDroite();
@@ -175,6 +185,7 @@ void Scene::onKeyDown(int code)
         action();
         break;
     case GLFW_KEY_ENTER:
+        spectateur = !spectateur;
         action();
         break;
     default:
@@ -191,30 +202,25 @@ void Scene::onKeyDown(int code)
 void Scene::action()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl;
-    string soundpathname = "data/chouette2.wav";
-    string soundMur = "data/white_noise.wav";
+    cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl
+         << perso->pos_x << " " << perso->pos_y << endl;
+    int x = perso->pos_x;
+    int y = perso->pos_y;
 
-    alSourceStopv(4, sources);
-    //ALsizei nbSource = 0;
-    sources[0] = c.West ? initSound(soundpathname, -15, 0, 0) : initSound(soundMur, -15, 0, 0);
-    sources[1] = c.North ? initSound(soundpathname, 0, 0, -15) : initSound(soundMur, 0, 0, -15);
-    sources[2] = c.East ? initSound(soundpathname, 15, 0, 0) : initSound(soundMur, 15, 0, 0);
-    sources[3] = c.South ? initSound(soundpathname, 0, 0, 15) : initSound(soundMur, 0, 0, 15);
-    
-    alSourcePlayv(4, sources);
+    alListener3f(AL_POSITION, x * 50, 0, y * 50);
+    v_perso->setPosition(vec2::fromValues(-x * 4, -y * 4));
 }
 
 ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
 {
     // ouverture du flux audio à placer dans le buffer
     ALuint buffer = alutCreateBufferFromFile(soundpathname.c_str());
-    // ALuint buffer = alutCreateBufferHelloWorld();
+    //ALuint buffer = alutCreateBufferHelloWorld();
     if (buffer == AL_NONE)
     {
-        alGetError();
+        ALenum chose = alGetError();
         string truc = alutGetErrorString(alutGetError());
-        std::cerr << "unable to open file " << soundpathname << truc << std::endl;
+        std::cerr << "unable to open file " << soundpathname << truc << chose << std::endl;
         throw std::runtime_error("file not found or not readable");
     }
     ALuint source;
@@ -223,15 +229,15 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
     alSourcei(source, AL_BUFFER, buffer);
 
     // propriétés de la source à l'origine
-    alSource3f(source, AL_POSITION, right, up, back); // on positionne la source à (0,0,0) par défaut
+    alSource3f(source, AL_POSITION, right, up, back);
     alSource3f(source, AL_VELOCITY, 0, 0, 0);
     alSourcei(source, AL_LOOPING, AL_TRUE);
-    // dans un cone d'angle [-inner/2,inner/2] il n'y a pas d'attenuation
-    alSourcef(source, AL_CONE_INNER_ANGLE, 20);
-    // dans un cone d'angle [-outer/2,outer/2] il y a une attenuation linéaire entre 0 et le gain
-    alSourcef(source, AL_CONE_OUTER_GAIN, 0);
-    alSourcef(source, AL_CONE_OUTER_ANGLE, 80);
-    // à l'extérieur de [-outer/2,outer/2] il y a une attenuation totale
+    alSourcef(source, AL_MAX_GAIN, 1);
+    alSourcef(source, AL_MIN_GAIN, 0);
+    alSourcef(source, AL_MAX_DISTANCE, 12);
+    alSourcef(source, AL_REFERENCE_DISTANCE, 0);
+    alSourcef(source, AL_ROLLOFF_FACTOR, 1000);
+    alSourcei(source, AL_DISTANCE_MODEL, AL_EXPONENT_DISTANCE_CLAMPED);
     return source;
 }
 
@@ -241,7 +247,6 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
 void Scene::actionDroite()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.East << endl;
     if (c.East)
     {
         perso->pos_x++;
@@ -253,7 +258,6 @@ void Scene::actionDroite()
 void Scene::actionGauche()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.West << endl;
     if (c.West)
     {
         perso->pos_x--;
@@ -265,7 +269,6 @@ void Scene::actionGauche()
 void Scene::actionFace()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.North << endl;
     if (c.North)
     {
         perso->pos_y--;
@@ -277,7 +280,6 @@ void Scene::actionFace()
 void Scene::actionArriere()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.South << endl;
     if (c.South)
     {
         perso->pos_y++;
@@ -289,48 +291,70 @@ void Scene::actionArriere()
  */
 void Scene::onDrawFrame()
 {
-    /** préparation des matrices **/
-
-    // positionner la caméra
-    mat4::identity(m_MatV);
-
-    // éloignement de la scène
-    mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
-
-    // rotation demandée par la souris
-    mat4::rotateX(m_MatV, m_MatV, Utils::radians(m_Elevation));
-    mat4::rotateY(m_MatV, m_MatV, Utils::radians(m_Azimut));
-
-    // centre des rotations
-    mat4::translate(m_MatV, m_MatV, m_Center);
-
-    /** gestion des lampes **/
-
-    // calculer la position et la direction de la lampe par rapport à la scène
-    m_Light->transform(m_MatV);
-
-    // fournir position et direction en coordonnées caméra aux objets éclairés
-    m_Ground->setLight(m_Light);
-
-    /** dessin de l'image **/
-
-    // effacer l'écran
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (spectateur)
+    {
+        /** préparation des matrices **/
 
-    // dessiner le sol
-    m_Ground->onDraw(m_MatP, m_MatV);
+        // positionner la caméra
+        mat4::identity(m_MatV);
 
-    m_Cube->onRender(m_MatP, m_MatV);
+        // éloignement de la scène
+        //mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
+        mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -99));
+        mat4::rotateX(m_MatV, m_MatV, Utils::radians(90));
 
-    // dessiner le canard en mouvement
-    mat4::rotateY(m_MatV, m_MatV, -Utils::Time * 0.8);
-    mat4::translate(m_MatV, m_MatV, vec3::fromValues(1.0, 0.0, 0.0));
+        // centre
+        mat4::translate(m_MatV, m_MatV, m_Center);
+
+        int size = lab->getSize();
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+
+                Case c = lab->getPosition(i, j);
+                Mur South = Mur(0.25f, 4);
+                South.setDoor(c.South);
+                South.setPosition(vec2::fromValues(0 - i * 4, -2 - j * 4));
+
+                Mur East = Mur(4, 0.25f);
+                East.setDoor(c.East);
+                East.setPosition(vec2::fromValues(-2 - i * 4, 0 - j * 4));
+
+                //cout << i << " " << j << " " << c.North << " " << c.East << " " << c.South << " " << c.West << endl;
+
+                Mur North = Mur(0.25f, 4);
+                North.setDoor(c.North);
+                North.setPosition(vec2::fromValues(0 - i * 4, 2 - j * 4));
+
+                Mur West = Mur(4, 0.25f);
+                West.setDoor(c.West);
+                West.setPosition(vec2::fromValues(2 - i * 4, 0 - j * 4));
+
+                West.onRender(m_MatP, m_MatV);
+                North.onRender(m_MatP, m_MatV);
+                South.onRender((m_MatP), (m_MatV));
+                East.onRender(m_MatP, m_MatV);
+            }
+        }
+
+        v_perso->onRender(m_MatP, m_MatV);
+    }
+    if (premier)
+    {
+        premier = false;
+        alSourcePlayv(indexSource, sources);
+    }
 }
 
 /** supprime tous les objets de cette scène */
 Scene::~Scene()
 {
-    delete m_Cube;
-    delete m_Ground;
-    //delete lab;
+    //delete m_Cube;
+    //delete m_Ground;
+    delete lab;
+    delete v_perso;
+    alDeleteSources(256, sources);
+    //delete m_Case;
 }

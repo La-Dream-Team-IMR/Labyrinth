@@ -7,38 +7,51 @@
 
 #include "Light.h"
 
-#include "Cube.h"
-#include "Ground.h"
-
 #include "AL/al.h"
 
-class Labyrinthe;
+#include <vector>
 
+class VisualLab;
+
+class Labyrinthe;
+class Mur;
+class VisualPerso;
 
 class Scene
 {
 private:
-
     // objets de la scène
-    Cube* m_Cube;
-    Ground* m_Ground;
-    Labyrinthe* lab;
-    struct Perso* perso;
-    ALuint sources[4];
+    /*Cube* m_Cube;
+    Ground* m_Ground;*/
+    Labyrinthe *lab;
+    struct Perso *perso;
+    ALuint sources[256];
+    unsigned int indexSource;
+    bool spectateur = false;
+
+    VisualPerso *v_perso;
+
+    bool premier;
+    //std::vector<VisualCase> v_cases;
+
+    //VisualLab* v_lab;
 
     // lampes
+    /*
     Light* m_Light;
+    */
 
     // matrices de transformation des objets de la scène
     mat4 m_MatP;
     mat4 m_MatV;
     mat4 m_MatVM;
     mat4 m_MatTMP;
-
+    /*
     // caméra table tournante
     float m_Azimut;
     float m_Elevation;
     float m_Distance;
+    */
     vec3 m_Center;
 
     // souris
@@ -47,13 +60,13 @@ private:
     double m_MousePrecY;
 
     // Son
-    ALuint buffer, source;
+    //ALuint buffer, source;
 
     /**
      * Appelé quand appuie sur touche directionnel
      */
     void action();
-    
+
     /**
      * Appelé quand appuie sur touche droite
      */
@@ -80,11 +93,9 @@ private:
      */
     ALuint initSound(std::string soundpathname, int right, int up, int back);
 
-
 public:
-
     /** constructeur, crée les objets 3D à dessiner */
-    Scene(Labyrinthe* labGenerated);
+    Scene();
 
     /** destructeur, libère les ressources */
     ~Scene();
@@ -95,7 +106,6 @@ public:
      * @param height : hauteur en nombre de pixels de la fenêtre
      */
     void onSurfaceChanged(int width, int height);
-
 
     /**
      * appelée quand on enfonce un bouton de la souris
