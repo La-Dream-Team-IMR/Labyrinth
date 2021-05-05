@@ -52,12 +52,12 @@ Scene::Scene()
 
             if (c.South)
             {
-                sources[indexSource] = initSound(soundpathname, i * 30, 0, 15 + j * 30);
+                sources[indexSource] = initSound(soundpathname, i * 50, 0, 25 + j * 50);
                 indexSource++;
             }
             if (c.East)
             {
-                sources[indexSource] = initSound(soundpathname, 15 + i * 30, 0, j * 30);
+                sources[indexSource] = initSound(soundpathname, 25 + i * 50, 0, j * 50);
                 indexSource++;
             }
         }
@@ -228,26 +228,7 @@ void Scene::action()
     int x = perso->pos_x;
     int y = perso->pos_y;
 
-    /*int size = lab->getSize();
-    if (c.North)
-    {
-        alSourcef(sources[perso->pos_x + (perso->pos_y - 1) * size], AL_GAIN, 1);
-    }
-    if (c.East)
-    {
-        alSourcef(sources[perso->pos_x + 1 + perso->pos_y * size], AL_GAIN, 1);
-    }
-    if (c.South)
-    {
-        alSourcef(sources[perso->pos_x + (perso->pos_y + 1) * size], AL_GAIN, 1);
-    }
-    if (c.West)
-    {
-        alSourcef(sources[perso->pos_x - 1 + perso->pos_y * size], AL_GAIN, 1);
-    }*/
-
-    alListener3f(AL_POSITION, x * 30, 0, y * 30);
-    //v_perso->setPosition(vec2::fromValues(-perso->pos_x * 4, -perso->pos_y * 4));
+    alListener3f(AL_POSITION, x * 50, 0, y * 50);
     v_perso->setPosition(vec2::fromValues(-x * 4, -y * 4));
 }
 
@@ -277,7 +258,7 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
     alSourcef(source, AL_MAX_GAIN, 1);
     alSourcef(source, AL_MIN_GAIN, 0);
     //alSourcef(source, AL_CONE_OUTER_ANGLE,)
-    alSourcef(source, AL_MAX_DISTANCE, 10);
+    alSourcef(source, AL_MAX_DISTANCE, 12);
     alSourcef(source, AL_REFERENCE_DISTANCE, 0);
     alSourcef(source, AL_ROLLOFF_FACTOR, 1000);
     alSourcei(source, AL_DISTANCE_MODEL, AL_EXPONENT_DISTANCE_CLAMPED);
@@ -298,6 +279,10 @@ void Scene::actionDroite()
     {
         perso->pos_x++;
     }
+    else
+    {
+        alSourcePlay(sources[indexSource]);
+    }
 }
 /**
 * Appelé quand appuie sur touche gauche
@@ -308,6 +293,12 @@ void Scene::actionGauche()
     if (c.West)
     {
         perso->pos_x--;
+    }
+    else
+    {
+        sources[indexSource] = initSound("data/pelle.wav", perso->pos_x * 30, 0, perso->pos_y * 30);
+        alSourcei(sources[indexSource], AL_LOOPING, AL_FALSE);
+        alSourcePlay(sources[indexSource]);
     }
 }
 /**
@@ -320,6 +311,12 @@ void Scene::actionFace()
     {
         perso->pos_y--;
     }
+    else
+    {
+        sources[indexSource] = initSound("data/pelle.wav", perso->pos_x * 30, 0, perso->pos_y * 30);
+        alSourcei(sources[indexSource], AL_LOOPING, AL_FALSE);
+        alSourcePlay(sources[indexSource]);
+    }
 }
 /**
 * Appelé quand appuie sur touche down
@@ -330,6 +327,12 @@ void Scene::actionArriere()
     if (c.South)
     {
         perso->pos_y++;
+    }
+    else
+    {
+        sources[indexSource] = initSound("data/pelle.wav", perso->pos_x * 30, 0, perso->pos_y * 30);
+        alSourcei(sources[indexSource], AL_LOOPING, AL_FALSE);
+        alSourcePlay(sources[indexSource]);
     }
 }
 

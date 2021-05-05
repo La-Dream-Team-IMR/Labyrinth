@@ -7,9 +7,6 @@
 
 #include "Light.h"
 
-#include "Cube.h"
-#include "Ground.h"
-
 #include "AL/al.h"
 
 #include <vector>
@@ -62,7 +59,7 @@ private:
     double m_MousePrecY;
 
     // Son
-    ALuint buffer, source;
+    //ALuint buffer, source;
 
     /**
      * Appelé quand appuie sur touche directionnel
