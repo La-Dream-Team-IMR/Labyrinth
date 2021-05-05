@@ -1,15 +1,15 @@
 //Définition de la classe Mur
 
-#include "Mur.h"
+#include "VisualPerso.h"
 #include <iostream>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alut.h>
 
-class MaterialMur : public Material
+class MaterialPerso : public Material
 {
 public:
-    MaterialMur() : Material("MatMur")
+    MaterialPerso() : Material("MatMur")
     {
         // vertex shader
         std::string srcVertexShader =
@@ -41,13 +41,12 @@ public:
 };
 
 /** constructeur */
-Mur::Mur(float height, float width) : Mesh("Mur")
+VisualPerso::VisualPerso(float height, float width) : Mesh("VisualPerso")
 {
     this->height = height;
     this->width = width;
-    this->m_hasDoor = false;
 
-    m_Material = new MaterialMur();
+    m_Material = new MaterialPerso();
     setMaterials(m_Material);
 
     //Material ?
@@ -66,10 +65,10 @@ Mur::Mur(float height, float width) : Mesh("Mur")
     Vertex *P3 = new Vertex(this, -a, 0.0f, +b);
 
     // couleurs
-    P0->setColor(0.0, 0.2, 1.0);  // P0 rose
-    P1->setColor(0.0, 0.2, 1.0); // P1 violet
-    P2->setColor(0.0, 0.2, 1.0);   // P2 bleu ciel
-    P3->setColor(0.0, 0.2, 1.0);    // P3 bleu foncé
+    P0->setColor(1.0, 0.75, 0.79);  // P0 rose
+    P1->setColor(0.58, 0.0, 0.827); // P1 violet
+    P2->setColor(0.0, 0.75, 1.0);   // P2 bleu ciel
+    P3->setColor(0.0, 0.0, 1.0);    // P3 bleu foncé
 
     // quads
     addQuad(P1, P0, P3, P2);
@@ -81,25 +80,22 @@ Mur::Mur(float height, float width) : Mesh("Mur")
      * @param matP : matrice de projection
      * @param matMV : matrice view*model (caméra * position objet)
      */
-void Mur::onRender(const mat4 &matP, const mat4 &matMV)
+void VisualPerso::onRender(const mat4 &matP, const mat4 &matMV)
 {
 
     /** dessin OpenGL **/
+    mat4 out;
+    mat4::translate(out, matMV, vec3::fromValues(-m_position[0], 0, -m_position[1]));
 
-    if (!m_hasDoor)
-    {
-        mat4 out = mat4::clone(matMV);
-        mat4::translate(out, out, vec3::fromValues(-m_position[0], 0, -m_position[1]));
-
-        onDraw(matP, out);
-    }
+    mat4::rotateY(out, out, Utils::radians(10) * Utils::getTime() * 10);
+    onDraw(matP, out);
 }
 
 /**
      * retourne la position % scèce du cube
      * @return vec2 position
      */
-vec2 &Mur::getPosition()
+vec2 &VisualPerso::getPosition()
 {
     return m_position;
 }
@@ -108,12 +104,12 @@ vec2 &Mur::getPosition()
      * affecte la position % scène du cube
      * @param vec2 pos position
      */
-void Mur::setPosition(vec2 pos)
+void VisualPerso::setPosition(vec2 pos)
 {
     vec2::copy(m_position, pos);
 }
 
-Mur::~Mur()
+VisualPerso::~VisualPerso()
 {
     // liberation du materiau
     delete m_Material;
