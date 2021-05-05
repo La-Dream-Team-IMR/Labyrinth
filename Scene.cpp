@@ -30,8 +30,6 @@ Scene::Scene()
 
     indexSource = 0;
     string soundpathname = "data/chouette2.wav";
-    string soundpathname2 = "data/Duck-quacking-sound.wav";
-    string soundMur = "data/white_noise.wav";
 
     std::cout << "__________" << std::endl;
     for (uint8_t i = 0; i < size; ++i)
@@ -138,16 +136,6 @@ void Scene::onMouseMove(double x, double y)
 {
     if (!m_Clicked)
         return;
-    /*
-    m_Azimut += (x - m_MousePrecX) * 0.1;
-    m_Elevation += (y - m_MousePrecY) * 0.1;
-    if (m_Elevation > 90.0)
-        m_Elevation = 90.0;
-    if (m_Elevation < -90.0)
-        m_Elevation = -90.0;
-    m_MousePrecX = x;
-    m_MousePrecY = y;
-    */
 }
 
 /**
@@ -158,21 +146,11 @@ void Scene::onKeyDown(int code)
 {
     // construire la matrice inverse de l'orientation de la vue à la souris
     mat4::identity(m_MatTMP);
-    //mat4::rotateY(m_MatTMP, m_MatTMP, Utils::radians(-m_Azimut));
-    //mat4::rotateX(m_MatTMP, m_MatTMP, Utils::radians(-m_Elevation));
 
     // vecteur indiquant le décalage à appliquer au pivot de la rotation
     vec3 offset = vec3::create();
     switch (code)
     {
-    /*
-    case GLFW_KEY_W: // avant
-        m_Distance *= exp(-0.01);
-        break;
-    case GLFW_KEY_S: // arrière
-        m_Distance *= exp(+0.01);
-        break;
-        */
     case GLFW_KEY_A: // droite
         vec3::transformMat4(offset, vec3::fromValues(+0.1, 0, 0), m_MatTMP);
         break;
@@ -207,6 +185,7 @@ void Scene::onKeyDown(int code)
         action();
         break;
     case GLFW_KEY_ENTER:
+        spectateur = !spectateur;
         action();
         break;
     default:
@@ -250,22 +229,15 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
     alSourcei(source, AL_BUFFER, buffer);
 
     // propriétés de la source à l'origine
-    alSource3f(source, AL_POSITION, right, up, back); // on positionne la source à (0,0,0) par défaut
+    alSource3f(source, AL_POSITION, right, up, back);
     alSource3f(source, AL_VELOCITY, 0, 0, 0);
     alSourcei(source, AL_LOOPING, AL_TRUE);
-    // dans un cone d'angle [-inner/2,inner/2] il n'y a pas d'attenuation
-    //alSourcef(source, AL_CONE_INNER_ANGLE, 360);
     alSourcef(source, AL_MAX_GAIN, 1);
     alSourcef(source, AL_MIN_GAIN, 0);
-    //alSourcef(source, AL_CONE_OUTER_ANGLE,)
     alSourcef(source, AL_MAX_DISTANCE, 12);
     alSourcef(source, AL_REFERENCE_DISTANCE, 0);
     alSourcef(source, AL_ROLLOFF_FACTOR, 1000);
     alSourcei(source, AL_DISTANCE_MODEL, AL_EXPONENT_DISTANCE_CLAMPED);
-    // dans un cone d'angle [-outer/2,outer/2] il y a une attenuation linéaire entre 0 et le gain
-    //alSourcef(source, AL_CONE_OUTER_GAIN, 0);
-    //alSourcef(source, AL_CONE_OUTER_ANGLE, 360);
-    // à l'extérieur de [-outer/2,outer/2] il y a une attenuation totale
     return source;
 }
 
@@ -279,10 +251,6 @@ void Scene::actionDroite()
     {
         perso->pos_x++;
     }
-    else
-    {
-        alSourcePlay(sources[indexSource]);
-    }
 }
 /**
 * Appelé quand appuie sur touche gauche
@@ -293,12 +261,6 @@ void Scene::actionGauche()
     if (c.West)
     {
         perso->pos_x--;
-    }
-    else
-    {
-        sources[indexSource] = initSound("data/pelle.wav", perso->pos_x * 30, 0, perso->pos_y * 30);
-        alSourcei(sources[indexSource], AL_LOOPING, AL_FALSE);
-        alSourcePlay(sources[indexSource]);
     }
 }
 /**
@@ -311,12 +273,6 @@ void Scene::actionFace()
     {
         perso->pos_y--;
     }
-    else
-    {
-        sources[indexSource] = initSound("data/pelle.wav", perso->pos_x * 30, 0, perso->pos_y * 30);
-        alSourcei(sources[indexSource], AL_LOOPING, AL_FALSE);
-        alSourcePlay(sources[indexSource]);
-    }
 }
 /**
 * Appelé quand appuie sur touche down
@@ -328,12 +284,6 @@ void Scene::actionArriere()
     {
         perso->pos_y++;
     }
-    else
-    {
-        sources[indexSource] = initSound("data/pelle.wav", perso->pos_x * 30, 0, perso->pos_y * 30);
-        alSourcei(sources[indexSource], AL_LOOPING, AL_FALSE);
-        alSourcePlay(sources[indexSource]);
-    }
 }
 
 /**
@@ -341,95 +291,61 @@ void Scene::actionArriere()
  */
 void Scene::onDrawFrame()
 {
-    /** préparation des matrices **/
-
-    // positionner la caméra
-    mat4::identity(m_MatV);
-
-    // éloignement de la scène
-    //mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
-    mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -99));
-    mat4::rotateX(m_MatV, m_MatV, Utils::radians(90));
-
-    // rotation demandée par la souris
-    //mat4::rotateX(m_MatV, m_MatV, Utils::radians(m_Elevation));
-    //mat4::rotateY(m_MatV, m_MatV, Utils::radians(m_Azimut));
-
-    // centre des rotations
-    mat4::translate(m_MatV, m_MatV, m_Center);
-
-    /** gestion des lampes **/
-    /*
-    // calculer la position et la direction de la lampe par rapport à la scène
-    m_Light->transform(m_MatV);
-
-    // fournir position et direction en coordonnées caméra aux objets éclairés
-    m_Ground->setLight(m_Light);
-
-    /** dessin de l'image **/
-
-    // effacer l'écran
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // dessiner le sol
-    /*m_Ground->onDraw(m_MatP, m_MatV);
-
-    m_Cube->onRender(m_MatP, m_MatV);*/
-
-    //m_Mur->onRender(m_MatP, m_MatV);
-
-    //m_mur->setPosition(vec2::fromValues(2,2));
-    //m_mur->onRender(m_MatP, m_MatV);
-    //v_lab->onRender(m_MatP, m_MatV);
-    //lab->onRender(m_MatP, m_MatV);
-    //VisualCase vc = VisualCase();
-    //Case c = lab->getPosition(0,0);
-    //vc.set(c,0,0);
-    //vc.North.onRender(m_MatP, m_MatV);
-    if (premier)
+    if (spectateur)
     {
-        alSourceStopv(indexSource, sources);
-    }
-    int size = lab->getSize();
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < size; j++)
+        /** préparation des matrices **/
+
+        // positionner la caméra
+        mat4::identity(m_MatV);
+
+        // éloignement de la scène
+        //mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
+        mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -99));
+        mat4::rotateX(m_MatV, m_MatV, Utils::radians(90));
+
+        // centre
+        mat4::translate(m_MatV, m_MatV, m_Center);
+
+        int size = lab->getSize();
+        for (int i = 0; i < size; i++)
         {
-
-            Case c = lab->getPosition(i, j);
-            if (premier)
+            for (int j = 0; j < size; j++)
             {
+
+                Case c = lab->getPosition(i, j);
+                Mur South = Mur(0.25f, 4);
+                South.setDoor(c.South);
+                South.setPosition(vec2::fromValues(0 - i * 4, -2 - j * 4));
+
+                Mur East = Mur(4, 0.25f);
+                East.setDoor(c.East);
+                East.setPosition(vec2::fromValues(-2 - i * 4, 0 - j * 4));
+
+                //cout << i << " " << j << " " << c.North << " " << c.East << " " << c.South << " " << c.West << endl;
+
+                Mur North = Mur(0.25f, 4);
+                North.setDoor(c.North);
+                North.setPosition(vec2::fromValues(0 - i * 4, 2 - j * 4));
+
+                Mur West = Mur(4, 0.25f);
+                West.setDoor(c.West);
+                West.setPosition(vec2::fromValues(2 - i * 4, 0 - j * 4));
+
+                West.onRender(m_MatP, m_MatV);
+                North.onRender(m_MatP, m_MatV);
+                South.onRender((m_MatP), (m_MatV));
+                East.onRender(m_MatP, m_MatV);
             }
-            Mur South = Mur(0.25f, 4);
-            South.setDoor(c.South);
-            South.setPosition(vec2::fromValues(0 - i * 4, -2 - j * 4));
-
-            Mur East = Mur(4, 0.25f);
-            East.setDoor(c.East);
-            East.setPosition(vec2::fromValues(-2 - i * 4, 0 - j * 4));
-
-            //cout << i << " " << j << " " << c.North << " " << c.East << " " << c.South << " " << c.West << endl;
-
-            Mur North = Mur(0.25f, 4);
-            North.setDoor(c.North);
-            North.setPosition(vec2::fromValues(0 - i * 4, 2 - j * 4));
-
-            Mur West = Mur(4, 0.25f);
-            West.setDoor(c.West);
-            West.setPosition(vec2::fromValues(2 - i * 4, 0 - j * 4));
-
-            West.onRender(m_MatP, m_MatV);
-            North.onRender(m_MatP, m_MatV);
-            South.onRender((m_MatP), (m_MatV));
-            East.onRender(m_MatP, m_MatV);
         }
+
+        v_perso->onRender(m_MatP, m_MatV);
     }
     if (premier)
     {
         premier = false;
         alSourcePlayv(indexSource, sources);
     }
-    v_perso->onRender(m_MatP, m_MatV);
 }
 
 /** supprime tous les objets de cette scène */

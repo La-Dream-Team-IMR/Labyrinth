@@ -27,6 +27,7 @@ private:
     struct Perso *perso;
     ALuint sources[256];
     unsigned int indexSource;
+    bool spectateur = false;
 
     VisualPerso *v_perso;
 
