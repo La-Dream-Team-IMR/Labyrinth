@@ -28,6 +28,9 @@ private:
     Labyrinthe *lab;
     struct Perso *perso;
     ALuint sources[256];
+    unsigned int indexSource;
+
+    Mur* v_perso;
 
     bool premier;
     //std::vector<VisualCase> v_cases;

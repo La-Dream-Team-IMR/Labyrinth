@@ -22,15 +22,19 @@ using namespace std;
 Scene::Scene()
 {
     premier = true;
-    lab = new Labyrinthe(10);
+    lab = new Labyrinthe(3);
+    v_perso = new Mur(1, 1);
 
     //v_lab = new VisualLab(lab);
 
     const auto size = lab->getSize();
     //v_cases = vector<VisualCase>(size*size);
 
-    std::cout << "__________" << std::endl;
+    indexSource = 0;
+    string soundpathname = "data/chouette2.wav";
+    string soundMur = "data/white_noise.wav";
 
+    std::cout << "__________" << std::endl;
     for (uint8_t i = 0; i < size; ++i)
     {
         for (uint8_t j = 0; j < size; ++j)
@@ -46,7 +50,11 @@ Scene::Scene()
                 std::cout << "|";
             else
                 std::cout << " ";
-            int index = i + j * 10;
+
+            sources[indexSource] = c.South ? initSound(soundpathname, j * 4, 0, 2 + i * 4) : initSound(soundMur, j * 4, 0, 2 + i * 4);
+            indexSource++;
+            sources[indexSource] = c.East ? initSound(soundpathname, 2 + j * 4, 0, i * 4) : initSound(soundMur, 2 + j * 4, 0, i * 4);
+            indexSource++;
         }
 
         std::cout << std::endl;
@@ -66,7 +74,10 @@ Scene::Scene()
     m_Light->setAngles(30.0, 40.0);*/
 
     perso = new Perso();
-    //sources[0] = initSound("data/white_noise.wav", 0, 0, 0);
+    /*for (int i = 0; i < 256; i++)
+    {
+        sources[i] = initSound("data/white_noise.wav", 0, 0, 0);
+    }*/
     //sources[1] = initSound("data/white_noise.wav", 0, 0, 0);
     //sources[2] = initSound("data/white_noise.wav", 0, 0, 0);
     //sources[3] = initSound("data/white_noise.wav", 0, 0, 0);
@@ -90,7 +101,10 @@ Scene::Scene()
     m_Distance = 0.0;*/
     m_Center = vec3::create();
     m_Clicked = false;
-    //action();
+
+    alListener3f(AL_POSITION, perso->pos_x * 4, 0, perso->pos_y * 4);
+    alListener3f(AL_DIRECTION, 0, 0, 1);
+    action();
 }
 
 /**
@@ -227,25 +241,17 @@ void Scene::onKeyDown(int code)
 void Scene::action()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl;
-    string soundpathname = "data/chouette2.wav";
-    string soundMur = "data/white_noise.wav";
+    cout << c.North << " " << c.East << " " << c.South << " " << c.West << " " << endl << perso->pos_x << " " << perso->pos_y << endl;
 
-    alSourceStopv(4, sources);
-    //ALsizei nbSource = 0;
-    sources[0] = c.West ? initSound(soundpathname, -15, 0, 0) : initSound(soundMur, -15, 0, 0);
-    sources[1] = c.North ? initSound(soundpathname, 0, 0, -15) : initSound(soundMur, 0, 0, -15);
-    sources[2] = c.East ? initSound(soundpathname, 15, 0, 0) : initSound(soundMur, 15, 0, 0);
-    sources[3] = c.South ? initSound(soundpathname, 0, 0, 15) : initSound(soundMur, 0, 0, 15);
-
-    alSourcePlayv(4, sources);
+    alListener3f(AL_POSITION, perso->pos_x * 4, 0, -perso->pos_y * 4);
+    v_perso->setPosition(vec2::fromValues(-perso->pos_x * 4, -perso->pos_y * 4));
 }
 
 ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
 {
     // ouverture du flux audio à placer dans le buffer
     ALuint buffer = alutCreateBufferFromFile(soundpathname.c_str());
-    // ALuint buffer = alutCreateBufferHelloWorld();
+    //ALuint buffer = alutCreateBufferHelloWorld();
     if (buffer == AL_NONE)
     {
         ALenum chose = alGetError();
@@ -264,9 +270,11 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
     alSourcei(source, AL_LOOPING, AL_TRUE);
     // dans un cone d'angle [-inner/2,inner/2] il n'y a pas d'attenuation
     alSourcef(source, AL_CONE_INNER_ANGLE, 20);
+    alSourcef(source, AL_MAX_DISTANCE, 5);
+    alSourcei(source, AL_DISTANCE_MODEL, AL_INVERSE_DISTANCE_CLAMPED);
     // dans un cone d'angle [-outer/2,outer/2] il y a une attenuation linéaire entre 0 et le gain
     alSourcef(source, AL_CONE_OUTER_GAIN, 0);
-    alSourcef(source, AL_CONE_OUTER_ANGLE, 80);
+    alSourcef(source, AL_CONE_OUTER_ANGLE, 360);
     // à l'extérieur de [-outer/2,outer/2] il y a une attenuation totale
     return source;
 }
@@ -277,7 +285,6 @@ ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
 void Scene::actionDroite()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.East << endl;
     if (c.East)
     {
         perso->pos_x++;
@@ -289,7 +296,6 @@ void Scene::actionDroite()
 void Scene::actionGauche()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.West << endl;
     if (c.West)
     {
         perso->pos_x--;
@@ -301,7 +307,6 @@ void Scene::actionGauche()
 void Scene::actionFace()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.North << endl;
     if (c.North)
     {
         perso->pos_y--;
@@ -313,7 +318,6 @@ void Scene::actionFace()
 void Scene::actionArriere()
 {
     Case c = lab->getPosition(perso->pos_x, perso->pos_y);
-    cout << c.South << endl;
     if (c.South)
     {
         perso->pos_y++;
@@ -371,8 +375,12 @@ void Scene::onDrawFrame()
     //vc.set(c,0,0);
     //vc.North.onRender(m_MatP, m_MatV);
     string soundpathname = "data/chouette2.wav";
+    string soundMur = "data/white_noise.wav";
+    if (premier)
+    {
+        alSourceStopv(indexSource, sources);
+    }
     int size = lab->getSize();
-    int indexSource = 0;
     for (int i = 0; i < size; i++)
     {
         for (int j = 0; j < size; j++)
@@ -381,16 +389,6 @@ void Scene::onDrawFrame()
             Case c = lab->getPosition(i, j);
             if (premier)
             {
-                if (c.South)
-                {
-                    sources[indexSource] = initSound(soundpathname, j * 4, 0, 2 + i * 4);
-                    indexSource++;
-                }
-                if (c.East)
-                {
-                    sources[indexSource] = initSound(soundpathname, 2 + j * 4, 0, i * 4);
-                    indexSource++;
-                }
             }
             Mur South = Mur(1, 4);
             South.setDoor(c.South);
@@ -421,8 +419,8 @@ void Scene::onDrawFrame()
         premier = false;
         alSourcePlayv(indexSource, sources);
     }
-    mat4::rotateY(m_MatV, m_MatV, -Utils::Time * 0.8);
-    mat4::translate(m_MatV, m_MatV, vec3::fromValues(1.0, 0.0, 0.0));
+
+    v_perso->onRender(m_MatP, m_MatV);
 }
 
 /** supprime tous les objets de cette scène */
@@ -431,5 +429,7 @@ Scene::~Scene()
     //delete m_Cube;
     //delete m_Ground;
     delete lab;
+    delete v_perso;
+    alDeleteSources(256, sources);
     //delete m_Case;
 }
