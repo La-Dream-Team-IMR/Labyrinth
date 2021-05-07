@@ -34,6 +34,14 @@ struct Case
         this->West = value & Direction::West;
     }
 
+    void open(uint8_t value)
+    {
+        this->North = (value & Direction::North) != 0 || this->North;
+        this->South = (value & Direction::South) != 0 || this->South;
+        this->East = (value & Direction::East) != 0 || this->East;
+        this->West = (value & Direction::West) != 0 || this->West;
+    }
+
     bool isFalse() const
     {
         return !this->North && !this->South && !this->East && !this->West;

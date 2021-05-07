@@ -23,7 +23,7 @@ using namespace std;
 Scene::Scene()
 {
     premier = true;
-    lab = new Labyrinthe(3);
+    lab = new Labyrinthe(5);
     v_perso = new VisualPerso(1, 1);
 
     const auto size = lab->getSize();
