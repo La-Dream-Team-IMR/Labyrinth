@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+main
+
+# Other files or folder
+.idea
+.vs
+.vscode
+*.pdf
+
+labyrinth
+main
