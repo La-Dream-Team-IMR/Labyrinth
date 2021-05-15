@@ -206,9 +206,15 @@ void Scene::action()
          << perso->pos_x << " " << perso->pos_y << endl;
     int x = perso->pos_x;
     int y = perso->pos_y;
+    int size = lab->getSize();
 
     alListener3f(AL_POSITION, x * 50, 0, y * 50);
     v_perso->setPosition(vec2::fromValues(-x * 4, -y * 4));
+    if (perso->pos_x == size - 1 && perso->pos_y == size - 1)
+    {
+        win = true;
+        cout << "Victoire" << endl;
+    }
 }
 
 ALuint Scene::initSound(std::string soundpathname, int right, int up, int back)
@@ -292,17 +298,17 @@ void Scene::actionArriere()
 void Scene::onDrawFrame()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (spectateur)
+    mat4::identity(m_MatV);
+
+    // éloignement de la scène
+    //mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
+    mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -99));
+    mat4::rotateX(m_MatV, m_MatV, Utils::radians(90));
+    if (spectateur && !win)
     {
         /** préparation des matrices **/
 
         // positionner la caméra
-        mat4::identity(m_MatV);
-
-        // éloignement de la scène
-        //mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -m_Distance));
-        mat4::translate(m_MatV, m_MatV, vec3::fromValues(0.0, 0.0, -99));
-        mat4::rotateX(m_MatV, m_MatV, Utils::radians(90));
 
         // centre
         mat4::translate(m_MatV, m_MatV, m_Center);
@@ -340,6 +346,10 @@ void Scene::onDrawFrame()
         }
 
         v_perso->onRender(m_MatP, m_MatV);
+    }
+    else if (win)
+    {
+        // Victoire
     }
     if (premier)
     {

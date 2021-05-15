@@ -28,6 +28,7 @@ private:
     ALuint sources[256];
     unsigned int indexSource;
     bool spectateur = false;
+    bool win = false;
 
     VisualPerso *v_perso;
 
